@@ -465,7 +465,11 @@ endef
 
 default:
 	@if [ -f .config -a "$(BUILD_NAME)" != "" ] ; then \
-		$(MAKE) bin ; \
+		if echo "$(MAKECMDGOALS)" | grep -q 'initramfs' 2>/dev/null ; then \
+			: ; \
+		else \
+			$(MAKE) bin ; \
+		fi ; \
 	else \
 		echo "Source tree is not configured. Run make with model name." ; \
 	fi
@@ -6573,4 +6577,37 @@ get_extendno:
 .PHONY: dummy
 .PHONY: pre_tools
 .PHONY: get_extendno
+.PHONY: initramfs initramfs-clean
+
+#
+# initramfs - Build a kernel with embedded initramfs (cpio)
+# This creates a TFTP-bootable recovery image that runs entirely in RAM.
+# No NAND writes are performed when booting this image.
+#
+# Usage:
+#   make BUILD_NAME=<model> initramfs       # Must use BUILD_NAME to avoid triggering default
+#   make BUILD_NAME=<model> initramfs-clean # Clean initramfs artifacts
+#
+# Prerequisite: A completed firmware build (make <model>)
+#
+initramfs:
+	@if [ -z "$(BUILD_NAME)" ] || [ "$(BUILD_NAME)" = "initramfs" ]; then \
+		echo "Usage: make BUILD_NAME=<model> initramfs" ; \
+		echo "  e.g. make BUILD_NAME=RT-AX57M initramfs" ; \
+		echo "" ; \
+		echo "  Or use the standalone script (recommended, avoids triggering full rebuild):" ; \
+		echo "  ./initramfs/build.sh RT-AX57M" ; \
+		exit 1 ; \
+	fi
+	@if [ ! -f "$(PLATFORMDIR)/target/bin/busybox" ]; then \
+		echo "ERROR: Target filesystem not built. Run 'make $(BUILD_NAME)' first." ; \
+		exit 1 ; \
+	fi
+	chmod +x initramfs/build.sh initramfs/mkits-initramfs.sh
+	initramfs/build.sh $(BUILD_NAME)
+
+initramfs-clean:
+	rm -f image/initramfs.cpio image/initramfs-vmlinux \
+		image/initramfs-zImage.tmp image/initramfs-*.its image/initramfs-*.bin
+	rm -f $(LINUXDIR)/.config.initramfs
 

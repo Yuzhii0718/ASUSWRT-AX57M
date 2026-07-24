@@ -1,0 +1,43 @@
+#!/bin/busybox sh
+#
+# ASUS MT798X Initramfs Recovery Init
+# Minimal init script for TFTP-booted recovery initramfs
+#
+# Design notes:
+#   - The cpio has prepended /dev/console (c 5:1) and /dev/null (c 1:3).
+#     The kernel opens /dev/console as fd 0/1/2 before running /init,
+#     so stdin/stdout/stderr are already connected — no exec redirects needed.
+#   - Do NOT mount devtmpfs here.  Our build's busybox does not include
+#     devtmpfs support, and a failed mount.shadow would break /dev/console.
+#   - Do NOT use "exec <>/dev/..." as init's first action — if exec with
+#     redirects fails, the shell exits immediately (SIGSEGV or exit(2)),
+#     triggering kernel panic "Attempted to kill init!".
+#
+
+# The kernel has already opened /dev/console for us.
+# Mount only what we need — no devtmpfs.
+/bin/mount -t proc  none /proc
+/bin/mount -t sysfs none /sys
+/bin/mount -t tmpfs none /tmp
+
+# Bring up loopback
+/bin/ifconfig lo 127.0.0.1 up 2>/dev/null || true
+
+echo ""
+echo "========================================"
+echo "  ASUS MT798X Initramfs Recovery Shell"
+echo "========================================"
+echo ""
+echo "This is a minimal recovery environment running entirely in RAM."
+echo "No NAND writes have been performed."
+echo ""
+echo "Available commands:"
+echo "  busybox --list   - List all available busybox applets"
+echo "  ifconfig         - Show network interfaces"
+echo "  cat /proc/mtd    - Show MTD partitions"
+echo "  nandwrite        - Write to NAND (if mtd-utils available)"
+echo "  tftp             - Download files via TFTP"
+echo ""
+
+# Launch shell
+exec /bin/sh
