@@ -660,7 +660,6 @@ else
 endif
 endif
 	@echo '$(BUILD_NAME)_$(KERNEL_VER).$(FS_VER) $(BUILD_TIME)' > router/shared/version
-	@echo 'EXTENDNO=$(EXTENDNO)' > router/extendno.conf
 	@-$(MAKE) -f model-desc.mak
 
 rt_ver_ntools:
