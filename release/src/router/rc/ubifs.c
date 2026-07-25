@@ -143,6 +143,17 @@ void start_ubifs(void)
 #endif
 
 #ifdef RTCONFIG_MTK_NAND
+	/*
+	 * On MT798X with UBI-based layout, jffs2 is a volume on the
+	 * main UBI device (ubi0) which is auto-attached by the kernel.
+	 * If found there, skip the legacy MTD-partition attach flow.
+	 */
+	if (ubi_getinfo(UBIFS_VOL_NAME, &dev, &part, &size) == 0) {
+		_dprintf("*** ubifs: %s found on ubi%d_%d (%d)\n",
+			UBIFS_VOL_NAME, dev, part, size);
+		goto skip_mtd_attach;
+	}
+
 	if (!mtd_getinfo(JFFS2_MTD_NAME, &mtd_part, &mtd_size)) return;
 
 	_dprintf("*** ubifs: %s (%d, %d)\n", UBIFS_VOL_NAME, mtd_part, mtd_size);
@@ -185,6 +196,8 @@ void start_ubifs(void)
 			eval("ubimkvol", UBI_DEV_PATH, "-s", vol_size_s, "-N", UBIFS_VOL_NAME);
 		}
 	}
+
+skip_mtd_attach:
 #endif
 
 	if (ubi_getinfo(UBIFS_VOL_NAME, &dev, &part, &size) < 0)
