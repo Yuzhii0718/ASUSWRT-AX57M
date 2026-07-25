@@ -1051,10 +1051,17 @@ static int scan_peb(struct ubi_device *ubi, struct ubi_attach_info *ai,
 		if (!ubi->image_seq)
 			ubi->image_seq = image_seq;
 		if (image_seq && ubi->image_seq != image_seq) {
-			ubi_err(ubi, "bad image sequence number %d in PEB %d, expected %d",
+			ubi_warn(ubi, "bad image sequence number %d in PEB %d, expected %d",
 				image_seq, pnum, ubi->image_seq);
 			ubi_dump_ec_hdr(ech);
-			return -EINVAL;
+			/*
+			 * This PEB belongs to an old UBI image (stale data from
+			 * a previous flash that wasn't fully erased). Add it to
+			 * the erase list so it can be erased and reused, instead
+			 * of failing the entire UBI attach.
+			 */
+			return add_to_list(ai, pnum, UBI_UNKNOWN, UBI_UNKNOWN,
+					   UBI_UNKNOWN, ec, &ai->erase);
 		}
 	}
 
