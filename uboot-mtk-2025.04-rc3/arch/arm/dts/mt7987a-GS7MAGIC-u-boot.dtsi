@@ -1,0 +1,19 @@
+// SPDX-License-Identifier: GPL-2.0
+#include "mt7987a-spim-nand-rfb-u-boot.dtsi"
+
+&eth0 {
+	status = "okay";
+	/delete-property/ mediatek,switch;
+	/* reset-gpios = <&pio 42 GPIO_ACTIVE_LOW>; */
+	/delete-property/ reset-gpios;
+
+	fixed-link {
+		speed = <2500>;
+		full-duplex;
+		pause;
+	};
+};
+
+&eth2 {
+	status = "disabled";
+};

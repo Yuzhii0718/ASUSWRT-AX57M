@@ -1,0 +1,11 @@
+#
+# ASUS Web UI
+#
+
+config ASUS_WEBUI
+	bool "Enable ASUS Web UI"
+	select MTK_TCP
+	select MTK_HTTPD
+	default n
+	help
+	  Enable Web based ASUS rescue UI

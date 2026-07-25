@@ -1,0 +1,55 @@
+Toolchain
+=========
+
+System GCC cross-compiler for AArch64 is required:
+
+    sudo apt install gcc-aarch64-linux-gnu
+
+The Makefile uses CROSS_COMPILE=aarch64-linux-gnu- (GCC 11.4.0, glibc),
+which is the default system toolchain on Ubuntu 22.04.
+
+Build
+=====
+
+For each model, copy the corresponding config and run make:
+
+    cp -f config-<MODEL> .config
+    make
+
+Output: u-boot_nand.img / u-boot_nand.trx
+
+Models
+======
+
+MT7981 (Filogic 820):
+
+  RT-AX57M           cp -f config-RT-AX57M .config
+  RT-8103AX          cp -f config-RT-8103AX .config
+  RT-AX52            cp -f config-RT-AX52 .config
+  PRT-AX57_GO        cp -f config-PRT-AX57_GO .config
+  CHEETAH (SPIM-NAND) cp -f config-CHEETAH-spim_nand .config
+
+MT7986 (Filogic 830):
+
+  PANTHERA (SPIM-NAND) cp -f config-PANTHERA-spim_nand .config
+  PANTHERB (SPIM-NAND) cp -f config-PANTHERB-spim_nand .config
+  RT-AX59U           cp -f config-RT-AX59U .config
+  TUF-AX4200         cp -f config-TUF-AX4200 .config
+  TUF-AX6000         cp -f config-TUF-AX6000 .config
+
+MT7987 (Filogic 860):
+
+  RT-BE59            cp -f config-RT-BE59 .config
+  EBA76              cp -f config-EBA76 .config
+  GS7_MAGIC          cp -f config-GS7_MAGIC .config
+  (template)         cp -f config-MT7987_template .config
+
+MT7988 (Filogic 880):
+
+  BT6                cp -f config-BT6 .config
+  BT8                cp -f config-BT8 .config
+  BT8P               cp -f config-BT8P .config
+  EAGLE_A            cp -f config-EAGLE_A .config
+  EAGLE_D            cp -f config-EAGLE_D .config
+  GS-BE7200X         cp -f config-GS-BE7200X .config
+  GS7                cp -f config-GS7 .config

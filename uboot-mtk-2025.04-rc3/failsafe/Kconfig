@@ -1,0 +1,12 @@
+#
+# Failsafe Web UI
+#
+
+config WEBUI_FAILSAFE
+	bool "Enable Failsafe Web UI"
+	select MTK_TCP
+	select MTK_HTTPD
+	depends on !ASUS_WEBUI
+	default n
+	help
+	  Enable Web based failsafe UI
