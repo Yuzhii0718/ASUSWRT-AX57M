@@ -46,6 +46,7 @@ static struct time_mapping_s time_mapping_list[] = {
 	{ "RT-AX52",	70,     90,     90},
 	{ "RT-AX1500",	70,     90,     90},
 	{ "RT-AX57M",	70,     90,     90},
+	{ "RT-8103AX",	70,     90,     90},
 	{ "Lyra",	80,	60,	60},
 	{ "Lyra_Mini",	80,	60,	60},
 	{ "Lyra_Trio",		80,	120,	120},

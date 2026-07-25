@@ -39,7 +39,8 @@
 #if !defined(PANTHERB) \
  && !defined(RTAX59U) \
  && !defined(RTAX57M) \
- && !defined(CHEETAH)
+ && !defined(CHEETAH) \
+ && !defined(RT8103AX)
 #define REDUCE_DUPLICATED_MDIO_QUERY
 #endif
 
@@ -55,7 +56,7 @@
 #define NR_WANLAN_PORT	7
 #elif defined(TUFAX4200) || defined(TUFAX6000)
 #define NR_WANLAN_PORT	6
-#elif defined(RTAX59U) || defined(RTAX52)
+#elif defined(RTAX59U) || defined(RTAX52) || defined(RT8103AX)
 #define NR_WANLAN_PORT	4
 #elif defined(PRTAX57_GO)
 #define NR_WANLAN_PORT	2
@@ -88,7 +89,7 @@ enum {
 	LAN2_PORT,
 	LAN1_PORT,
 	WAN_PORT,
-#elif defined(RTAX59U) || defined(RTAX52)
+#elif defined(RTAX59U) || defined(RTAX52) || defined(RT8103AX)
 	LAN3_PORT=0,
 	LAN2_PORT,
 	LAN1_PORT,
@@ -135,7 +136,7 @@ static const int lan_wan_partition[9][NR_WANLAN_PORT] = {
 	{0,0,1,1,1,0}, // IPTV STB port = LAN1 & LAN2
 	{1,1,0,0,1,0}, // IPTV STB port = LAN3 & LAN4
 	{1,1,1,1,1,1}  // ALL
-#elif defined(RTAX59U) || defined(RTAX52)
+#elif defined(RTAX59U) || defined(RTAX52) || defined(RT8103AX)
 	/* L1, L2, L3, W1G */
 	{1,1,1,0}, // Normal
 	{0,1,1,0}, // IPTV STB port = LAN1
@@ -176,7 +177,7 @@ static const int lan_wan_partition[9][NR_WANLAN_PORT] = {
  */
 static const int bsport_to_vport[MAX_WANLAN_PORT] = {
 	WAN_PORT, LAN1_PORT, LAN2_PORT, LAN3_PORT
-#if !defined(RTAX59U) && !defined(RTAX52)
+#if !defined(RTAX59U) && !defined(RTAX52) && !defined(RT8103AX)
 	, LAN4_PORT
 #endif
 #if defined(PANTHERA)
@@ -214,6 +215,8 @@ static const int vport_to_phy_addr[MAX_WANLAN_PORT] = {
 	124, 100					/* LAN1, WAN */
 #elif defined(RTAX52)
 	0, 1, 2, 100					/* LAN3~1, WAN */
+#elif defined(RT8103AX)
+	0, 1, 2, 100					/* LAN3~1, WAN */
 #else /* PANTHERB, RTAX57M */
 	0, 1, 2, 3, 4					/* LAN4~1, WAN */
 #endif
@@ -241,7 +244,7 @@ static const char *vport_to_iface[MAX_WANLAN_PORT] = {
 	"lan4", "lan3", "lan2", "lan1",				/* LAN4~1 */
 #elif defined(PRTAX57_GO)
 	"eth0",							/* LAN1 */
-#elif defined(RTAX52)
+#elif defined(RTAX52) || defined(RT8103AX)
 	"lan1", "lan2", "lan3",					/* LAN3~1 */
 #elif defined(RTAX57M)
 	"lan4", "lan3", "lan2",	"lan1",				/* LAN4~1 */
@@ -255,7 +258,7 @@ static const char *vport_to_iface[MAX_WANLAN_PORT] = {
  * array element:	platform specific VoIP/STB virtual port bitmask.
  */
 static const unsigned int stb_to_mask[7] = { 0,
-#if defined(RTAX59U) || defined(RTAX52)
+#if defined(RTAX59U) || defined(RTAX52) || defined(RT8103AX)
 	(1U << LAN1_PORT),
 	(1U << LAN2_PORT),
 	(1U << LAN2_PORT), /* unused */
@@ -280,7 +283,7 @@ static unsigned int wanlanports_mask =
 					(1U << WAN_PORT) | (1U << LAN1_PORT) | (1U << LAN2_PORT) | (1U << LAN3_PORT) | (1U << LAN4_PORT) | (1U << LAN5_PORT) | (1U << LAN6_PORT);
 #elif defined(TUFAX4200) || defined(TUFAX6000)
 					(1U << WAN_PORT) | (1U << LAN1_PORT) | (1U << LAN2_PORT) | (1U << LAN3_PORT) | (1U << LAN4_PORT) | (1U << LAN5_PORT);
-#elif defined(RTAX59U) || defined(RTAX52)
+#elif defined(RTAX59U) || defined(RTAX52) || defined(RT8103AX)
 					(1U << WAN_PORT) | (1U << LAN1_PORT) | (1U << LAN2_PORT) | (1U << LAN3_PORT);
 #elif defined(PRTAX57_GO)
 					(1U << WAN_PORT) | (1U << LAN1_PORT);
@@ -303,7 +306,7 @@ int esw_fd;
  * array value:	Model-specific virtual port number
  */
 static int n56u_to_model_port_mapping[] = {
-#if defined(RTAX59U) || defined(RTAX52)
+#if defined(RTAX59U) || defined(RTAX52) || defined(RT8103AX)
 	LAN3_PORT,	//0000 0000 0001 LAN4 (convert to LAN3)
 	LAN2_PORT,	//0000 0000 0010 LAN3 (convert to LAN2)
 	LAN2_PORT,	//0000 0000 0100 LAN2
@@ -332,7 +335,7 @@ const int lan_id_to_vport[NR_WANLAN_PORT] = {
 #if !defined(PRTAX57_GO)
 	LAN2_PORT,
 	LAN3_PORT,
-#if !defined(RTAX59U) && !defined(RTAX52)
+#if !defined(RTAX59U) && !defined(RTAX52) && !defined(RT8103AX)
 	LAN4_PORT,
 #endif
 #if defined(PANTHERA)
@@ -1833,7 +1836,7 @@ int __do_led_control(int which, int mode)
 	return ret;
 }
 
-#elif defined(RTAX52)
+#elif defined(RTAX52) || defined(RT8103AX)
 /* Enable/turn off MT7531 switch LED.
  * @mode:	0: GPIO mode
  * 		1: default mode
@@ -1889,7 +1892,7 @@ void mt798x_get_phy_port_mapping(phy_port_mapping *port_mapping)
 		.port[2] = { .phy_port_id = LAN2_PORT, .label_name = "L2", .cap = PHY_PORT_CAP_LAN, .max_rate = 1000, .ifname = NULL, .flag = 0, .seq_no = -1, .ui_display = NULL },
 		.port[3] = { .phy_port_id = LAN3_PORT, .label_name = "L3", .cap = PHY_PORT_CAP_LAN, .max_rate = 1000, .ifname = NULL, .flag = 0, .seq_no = -1, .ui_display = NULL },
 		.port[4] = { .phy_port_id = LAN4_PORT, .label_name = "L4", .cap = PHY_PORT_CAP_LAN, .max_rate = 1000, .ifname = NULL, .flag = 0, .seq_no = -1, .ui_display = NULL },
-#elif defined(RTAX59U) || defined(RTAX52)
+#elif defined(RTAX59U) || defined(RTAX52) || defined(RT8103AX)
 		.count = NR_WANLAN_PORT,
 		.port[0] = { .phy_port_id = WAN_PORT,  .label_name = "W0", .cap = PHY_PORT_CAP_WAN, .max_rate = 1000, .ifname = NULL, .flag = 0, .seq_no = -1, .ui_display = NULL },
 		.port[1] = { .phy_port_id = LAN1_PORT, .label_name = "L1", .cap = PHY_PORT_CAP_LAN, .max_rate = 1000, .ifname = NULL, .flag = 0, .seq_no = -1, .ui_display = NULL },
@@ -1932,7 +1935,7 @@ void mt798x_get_phy_port_mapping(phy_port_mapping *port_mapping)
 	}
 
 ///////////////// Add USB port define here ////////////////////////
-#if defined(PANTHERB) || defined(TUFAX4200) || defined(TUFAX6000) || defined(CHEETAH) || defined(PRTAX57_GO)
+#if defined(PANTHERB) || defined(TUFAX4200) || defined(TUFAX6000) || defined(CHEETAH) || defined(RT8103AX) || defined(PRTAX57_GO)
 ////  1 USB3 port device
 	i = port_mapping->count++;
 	port_mapping->port[i].phy_port_id = -1;

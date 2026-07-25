@@ -30,5 +30,8 @@ config RTAX52
 config RTAX57M
 	bool "Cheetah RT-AX57M"
 
+config RT8103AX
+	bool "Cheetah RT-8103AX"
+
 endchoice
 

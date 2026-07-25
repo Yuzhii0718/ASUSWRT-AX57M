@@ -261,6 +261,22 @@ static int setAllSpecificColorLedOn(enum ate_led_color color)
 		}
 		break;
 #endif
+#if defined(RT8103AX)
+	case MODEL_RT8103AX:
+		{
+			/* RT-8103AX has no PWR/LAN/WAN_RED LEDs,
+			 * only WAN + 2G + 5G standard LEDs.
+			 * (MESH RGB LEDs on GPIO23-25 are not part
+			 * of the standard ATE LED test.) */
+			static enum led_id blue_led[] = {
+				LED_WAN,
+				LED_2G, LED_5G,
+				LED_ID_MAX
+			};
+			all_led[LED_COLOR_BLUE] = blue_led;
+		}
+		break;
+#endif
 #if defined(RTAD7200)
 	case MODEL_RTAD7200:
 		{

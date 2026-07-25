@@ -381,7 +381,7 @@ void config_hwctl_led(void)
 	eval("switch", "phy", "cl45", "w", "0", "0x1f", "0x25",    "0x0");	/* LED0, none of any events blink */
 	eval("switch", "phy", "cl45", "w", "0", "0x1f", "0x26", "0xc007");	/* Enable LED1, active high, link 10M/100M/1G ON */
 	eval("switch", "phy", "cl45", "w", "0", "0x1f", "0x27",   "0x3f");	/* LED1, blinks on 10M/100M/1G TX/RX activity */
-#elif defined(RTAX52)
+#elif defined(RTAX52) || defined(RT8103AX)
 	set_mt7531_led(nvram_match("AllLED", "0") ? 0 : 1, 0);
 #endif
 }
@@ -1417,7 +1417,7 @@ void wan_force_link_sp(int unit)
 
 #if defined(TUFAX4200) || defined(TUFAX6000)
 	port = 6;
-#elif defined(RTAX59U) || defined(RTAX52)
+#elif defined(RTAX59U) || defined(RTAX52) || defined(RT8103AX)
 	port = 1;
 #elif defined(RTAX57M)
 	port = 4;

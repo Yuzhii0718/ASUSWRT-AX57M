@@ -1324,4 +1324,6 @@ else ifeq ($(CONFIG_RTAX52),y)
 dtb-y += mt7981-RT-AX52.dtb
 else ifeq ($(CONFIG_RTAX57M),y)
 dtb-y += mt7981-RT-AX57M.dtb
+else ifeq ($(CONFIG_RT8103AX),y)
+dtb-y += mt7981-RT-8103AX.dtb
 endif

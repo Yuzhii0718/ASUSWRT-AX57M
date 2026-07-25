@@ -18,6 +18,8 @@ else ifeq ($(CONFIG_RTAX52),y)
 dtb-y += mt7981-RT-AX52.dtb
 else ifeq ($(CONFIG_RTAX57M),y)
 dtb-y += mt7981-RT-AX57M.dtb
+else ifeq ($(CONFIG_RT8103AX),y)
+dtb-y += mt7981-RT-8103AX.dtb
 else
 dtb-$(CONFIG_ARCH_MEDIATEK) += mt2712-evb.dtb
 dtb-$(CONFIG_ARCH_MEDIATEK) += mt6755-evb.dtb

@@ -340,7 +340,7 @@ function initial(){
 
 			add_options_x2(document.form.wanports_bond_menu, desc, val, orig_wanports_bond);
 		}
-		else if(based_modelid == "RT-AX59U" || based_modelid == "RT-AX52") {
+		else if(based_modelid == "RT-AX59U" || based_modelid == "RT-AX52" || based_modelid == "RT-8103AX") {
 			var desc = [ "LAN 3" ];
 			var val = [ "0 3" ];
 

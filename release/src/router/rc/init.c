@@ -2200,7 +2200,7 @@ static void post_restore_defaults(void)
 	if (nvram_get_int("log_size") < 768)
 		nvram_set("log_size", "768");
 }
-#elif defined(RTAX52) || defined(RTAX57M)
+#elif defined(RTAX52) || defined(RTAX57M) || defined(RT8103AX)
 static void post_restore_defaults(void)
 {
 	char *odmpid = nvram_safe_get("odmpid");
@@ -2213,6 +2213,8 @@ static void post_restore_defaults(void)
 	 || !strcmp(odmpid, "RT-AX57M")
 	 || !strcmp(odmpid, "RT-AX3000S")
 	 || !strcmp(odmpid, "RT-AX3000HP")
+#elif defined(RT8103AX)
+	 || !strcmp(odmpid, "RT-8103AX")
 #endif
 	) {
 		char *tcode = nvram_safe_get("territory_code");
@@ -2509,7 +2511,7 @@ restore_defaults(void)
 	nvram_unset("httpds6_reload_cert");
 #endif
 
-#if defined(RTCONFIG_SOC_IPQ8074) || defined(RTCONFIG_SOC_IPQ60XX) || defined(TUFAX4200) || defined(TUFAX6000) || defined(RTAX52) || defined(RTAX57M)
+#if defined(RTCONFIG_SOC_IPQ8074) || defined(RTCONFIG_SOC_IPQ60XX) || defined(TUFAX4200) || defined(TUFAX6000) || defined(RTAX52) || defined(RTAX57M) || defined(RT8103AX)
 	/* Keep below statment at end of restore_defaults(). */
 	post_restore_defaults();
 #endif
@@ -3698,7 +3700,7 @@ int init_nvram(void)
 #if defined(RTCONFIG_SWITCH_MT7986_MT7531)
 	char *dw_lan = NULL;
 #endif
-#if defined(RTCONFIG_WANPORT2) || defined(PLAX56_XP4) || defined(TUFAX4200) || defined(TUFAX6000) || defined(RTAX59U) || defined(RTAX52) || defined(RTAX57M)
+#if defined(RTCONFIG_WANPORT2) || defined(PLAX56_XP4) || defined(TUFAX4200) || defined(TUFAX6000) || defined(RTAX59U) || defined(RTAX52) || defined(RTAX57M) || defined(RT8103AX)
 	char *wan0, *wan1 __attribute__((unused)), *lan_1, *lan_2, lan_ifs[IFNAMSIZ * 4];
 #endif
 #ifdef RTCONFIG_GMAC3
@@ -5093,8 +5095,9 @@ int init_nvram(void)
 		break;
 #endif	/* PRTAX57_GO */
 
-#if defined(RTAX52)
+#if defined(RTAX52) || defined(RT8103AX)
 	case MODEL_RTAX52:
+	case MODEL_RT8103AX:
 		nvram_set("boardflags", "0x100"); // although it is not used in ralink driver, set for vlan
 		nvram_set("lan_ifname", "br0");
 
@@ -5231,6 +5234,19 @@ int init_nvram(void)
 		nvram_set_int("btn_wps_gpio", 0|GPIO_ACTIVE_LOW);
 		nvram_set_int("btn_rst_gpio", 1|GPIO_ACTIVE_LOW);
 		// led
+#if defined(RT8103AX)
+		nvram_unset("led_pwr_gpio");	/* no dedicated power LED on this model */
+		nvram_unset("led_wps_gpio");	/* no dedicated WPS LED on this model */
+		nvram_set_int("led_wan_gpio", 8|GPIO_ACTIVE_LOW);
+		nvram_set_int("led_2g_gpio", 34|GPIO_ACTIVE_LOW);
+		nvram_set_int("led_5g_gpio", 35|GPIO_ACTIVE_LOW);
+		nvram_set_int("led_mesh_b_gpio", 23|GPIO_ACTIVE_LOW);
+		nvram_set_int("led_mesh_g_gpio", 24|GPIO_ACTIVE_LOW);
+		nvram_set_int("led_mesh_r_gpio", 25|GPIO_ACTIVE_LOW);
+		config_netdev_bled("led_wan_gpio", "eth1");
+		config_netdev_bled("led_2g_gpio", "ra0");
+		config_netdev_bled("led_5g_gpio", "rax0");
+#else /* RTAX57M */
 		nvram_set_int("led_pwr_gpio", 4);
 		nvram_set_int("led_wps_gpio", 4);
 		nvram_set_int("led_wan_gpio", 5|GPIO_ACTIVE_LOW);
@@ -5243,6 +5259,7 @@ int init_nvram(void)
 		config_netdev_bled("led_lan_gpio", "eth0");
 		config_netdev_bled("led_2g_gpio", "ra0");
 		config_netdev_bled("led_5g_gpio", "rax0");
+#endif
 
 		nvram_set("ct_max", "300000"); // force
 
@@ -5290,7 +5307,7 @@ int init_nvram(void)
 		}
 #endif
 		break;
-#endif	/* RTAX57M */
+#endif	/* RTAX57M || RT8103AX */
 
 #if defined(TUFAX4200)
 	case MODEL_TUFAX4200:

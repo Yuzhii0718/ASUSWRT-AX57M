@@ -452,7 +452,7 @@ function initial(){
 			inputCtrl(document.form.wl_txbf, 1);	
 		}
 
-		if (based_modelid == "TUF-AX4200" || based_modelid == "TUF-AX6000" || based_modelid == "RT-AX59U" || based_modelid == "RT-AX52" || based_modelid == "PRT-AX57_GO" || based_modelid == "RT-AX57M") {
+		if (based_modelid == "TUF-AX4200" || based_modelid == "TUF-AX6000" || based_modelid == "RT-AX59U" || based_modelid == "RT-AX52" || based_modelid == "PRT-AX57_GO" || based_modelid == "RT-AX57M" || based_modelid == "RT-8103AX") {
 			inputCtrl(document.form.wl_itxbf, 1);
 		}
 
@@ -550,7 +550,7 @@ function initial(){
 			document.form.wl_mumimo.disabled = false;
 		}
 
-		if(based_modelid == "4G-AC86U" || based_modelid == "4G-AX56" || based_modelid == "RT-AX53U" || based_modelid == "RT-AX54" || based_modelid == "XD4S" || based_modelid == "TUF-AX4200" || based_modelid == "TUF-AX6000" || based_modelid == "RT-AX59U" || based_modelid == "RT-AX52" || based_modelid == "PRT-AX57_GO" || based_modelid == "RT-AX57M"){
+		if(based_modelid == "4G-AC86U" || based_modelid == "4G-AX56" || based_modelid == "RT-AX53U" || based_modelid == "RT-AX54" || based_modelid == "XD4S" || based_modelid == "TUF-AX4200" || based_modelid == "TUF-AX6000" || based_modelid == "RT-AX59U" || based_modelid == "RT-AX52" || based_modelid == "PRT-AX57_GO" || based_modelid == "RT-AX57M" || based_modelid == "RT-8103AX"){
 			inputCtrl(document.form.wl_itxbf, 1);
 		}
 

@@ -55,6 +55,7 @@ Mediatek Filogic MT79xx SoC Models
         make TUF-AX4200              # MT7986
         make TUF-AX6000              # MT7986
         make RT-AX59U                # MT7986
-
+        make RT-8103AX               # MT7981 ZBT_Z8103AX-C
+        
     Build a specific package (e.g. httpd):
         make mk-httpd
