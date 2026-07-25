@@ -1,0 +1,38 @@
+Toolchain
+=========
+
+System GCC cross-compiler for AArch64 is required:
+
+    sudo apt install gcc-aarch64-linux-gnu
+
+The Makefile uses CROSS_COMPILE=aarch64-linux-gnu- (GCC 11.4.0, glibc),
+which is the default system toolchain on Ubuntu 22.04.
+
+Build
+=====
+
+For each model, copy the corresponding config and run make:
+
+    cp -f config-<MODEL> .config
+    make
+
+Output: u-boot_nand.img
+
+Models
+======
+
+MT7981 (Filogic 820):
+
+  TUF-AX4200         cp -f config-TUF-AX4200 .config
+  TUF-AX6000         cp -f config-TUF-AX6000 .config
+  RT-AX59U           cp -f config-RT-AX59U .config
+  RT-AX57M           cp -f config-RT-AX57M .config
+  RT-8103AX          cp -f config-RT-8103AX .config
+  RT-AX52            cp -f config-RT-AX52 .config
+  PRT-AX57_GO        cp -f config-PRT-AX57_GO .config
+  CHEETAH (SPIM-NAND) cp -f config-CHEETAH-spim_nand .config
+
+MT7986A (Filogic 830):
+
+  PANTHERA (SPIM-NAND) cp -f config-PANTHERA-spim_nand .config
+  PANTHERB (SPIM-NAND) cp -f config-PANTHERB-spim_nand .config
