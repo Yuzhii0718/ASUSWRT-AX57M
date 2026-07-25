@@ -170,6 +170,9 @@ ${FDT_NODE}
 			description = \"Root File System\";
 			data = /incbin/(\"${ROOTFS}\");
 			type = \"ramdisk\";
+			arch = \"${ARCH}\";
+			os = \"linux\";
+			compression = \"none\";
 			load = <0>;
 			entry = <0>;
 			hash-1 {
