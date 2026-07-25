@@ -107,8 +107,10 @@ static int get_mtd_info(const char *mtd_name, struct mtd_info *mi)
 				continue;
 
 			snprintf(mtd_dev, sizeof(mtd_dev), "/dev/mtd%d", i);
-			if ((r = open(mtd_dev, O_RDWR|O_SYNC)) < 0)
+			if ((r = open(mtd_dev, O_RDONLY)) < 0) {
+				perror(mtd_dev);
 				continue;
+			}
 
 			if (ioctl(r, MEMGETINFO, &m) < 0) {
 				close(r);
@@ -162,9 +164,11 @@ static int get_mtd_info(const char *mtd_name, struct mtd_info *mi)
 					}
 
 					snprintf(mtd_dev, sizeof(mtd_dev), "/dev/mtd%d", i);
-					r = open(mtd_dev, O_RDWR|O_SYNC);
-					if (r < 0)
+					r = open(mtd_dev, O_RDONLY);
+					if (r < 0) {
+						perror(mtd_dev);
 						break;
+					}
 
 					if (ioctl(r, MEMGETINFO, &m) < 0) {
 						close(r);
