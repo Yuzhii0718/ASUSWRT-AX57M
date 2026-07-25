@@ -1993,6 +1993,68 @@ void set_et0macaddr(char *macaddr2, char *macaddr)
 void eeprom_check(void);
 void boot_version_ck(void);
 #endif
+
+/*
+ * Generate a fallback MAC address for dev boards where Factory
+ * partition has no valid calibration data.
+ *
+ * Tries to use /proc/device-tree/serial-number for a deterministic
+ * MAC (stable across reboots). Falls back to /dev/urandom.
+ * Always sets the locally-administered bit (0x02 in first byte).
+ */
+static void generate_fallback_mac(char *mac_str, unsigned int offset)
+{
+	unsigned char mac[6] = {0};
+	FILE *fp;
+	int has_serial = 0;
+
+	/* Try device-tree serial number for deterministic MAC */
+	fp = fopen("/proc/device-tree/serial-number", "r");
+	if (fp) {
+		char serial[64] = {0};
+		size_t n = fread(serial, 1, sizeof(serial) - 1, fp);
+		fclose(fp);
+		if (n > 0) {
+			unsigned int hash = 0;
+			unsigned int i;
+			serial[n] = '\0';
+			for (i = 0; serial[i]; i++)
+				hash = ((hash << 5) + hash) + (unsigned char)serial[i];
+			/* Add offset to differentiate 2G/5G MACs */
+			hash += offset;
+			mac[0] = 0x02; /* locally-administered unicast */
+			mac[1] = (hash >> 16) & 0xFF;
+			mac[2] = (hash >> 8) & 0xFF;
+			mac[3] = hash & 0xFF;
+			mac[4] = (hash >> 24) & 0xFF; /* more bits from hash */
+			mac[5] = (hash >> 12) & 0xFF;
+			has_serial = 1;
+		}
+	}
+
+	if (!has_serial) {
+		/* No device-tree serial; use urandom + offset for uniqueness */
+		unsigned int seed = 0xDEADBEEF;
+		fp = fopen("/dev/urandom", "r");
+		if (fp) {
+			unsigned int r;
+			if (fread(&r, sizeof(r), 1, fp) == 1)
+				seed = r;
+			fclose(fp);
+		}
+		seed += offset;
+		mac[0] = 0x02; /* locally-administered unicast */
+		mac[1] = (seed >> 16) & 0xFF;
+		mac[2] = (seed >> 8) & 0xFF;
+		mac[3] = seed & 0xFF;
+		mac[4] = (seed >> 24) & 0xFF;
+		mac[5] = (seed >> 12) & 0xFF;
+	}
+
+	ether_etoa(mac, mac_str);
+	_dprintf("Using fallback MAC: %s (offset=%u)\n", mac_str, offset);
+}
+
 void init_syspara(void)
 {
 	unsigned char buffer[16];
@@ -2081,7 +2143,8 @@ void init_syspara(void)
 			continue;
 		*factory_var_buf = 0xFF;
 		if (FRead(factory_var_buf, pfv->factory_offset, pfv->length)) {
-			nvram_set(pfv->nv_name, "");
+			_dprintf("%s: Factory read failed, using fallback\n", pfv->nv_name);
+			nvram_set(pfv->nv_name, "DEV");
 			continue;
 		}
 
@@ -2089,7 +2152,8 @@ void init_syspara(void)
 		if ((p = strchr(factory_var_buf, 0xFF)) != NULL)
 			*p = '\0';
 		if (*factory_var_buf == '\0' || *factory_var_buf == 0xFF) {
-			nvram_set(pfv->nv_name, "");
+			_dprintf("%s: Factory data blank, using fallback\n", pfv->nv_name);
+			nvram_set(pfv->nv_name, "DEV");
 			continue;
 		}
 
@@ -2101,25 +2165,25 @@ void init_syspara(void)
 	}
 #endif
 
-	if (FRead(dst, OFFSET_MAC_ADDR, bytes)<0)
+	if (FRead(dst, OFFSET_MAC_ADDR, bytes)<0 || buffer[0] == 0xff)
 	{
-		_dprintf("READ MAC address: Out of scope\n");
+		_dprintf("READ MAC address: Out of scope (dev board fallback)\n");
+		generate_fallback_mac(macaddr, 0);
 	}
 	else
 	{
-		if (buffer[0]!=0xff)
-			ether_etoa(buffer, macaddr);
+		ether_etoa(buffer, macaddr);
 	}
 
 #if !defined(RTN14U) && !defined(RTN11P) && !defined(RTN300) && !defined(RTN800HP) // single band
-	if (FRead(dst, OFFSET_MAC_ADDR_2G, bytes)<0)
+	if (FRead(dst, OFFSET_MAC_ADDR_2G, bytes)<0 || buffer[0] == 0xff)
 	{
-		_dprintf("READ MAC address 2G: Out of scope\n");
+		_dprintf("READ MAC address 2G: Out of scope (dev board fallback)\n");
+		generate_fallback_mac(macaddr2, 1);
 	}
 	else
 	{
-		if (buffer[0]!=0xff)
-			ether_etoa(buffer, macaddr2);
+		ether_etoa(buffer, macaddr2);
 	}
 #endif
 #ifdef RTAC51U	/* FIX EU2CN */
@@ -2256,15 +2320,16 @@ void init_syspara(void)
 		nvram_set("territory_code", "CN/01");	/* RT-AC51U: FIX EU2CN */
 	} else {
 		if (FRead(buffer, OFFSET_TERRITORY_CODE, 5) < 0) {
-			_dprintf("READ ASUS territory code: Out of scope\n");
-			nvram_unset("territory_code");
+			_dprintf("READ ASUS territory code: Out of scope (dev board fallback: DB/01)\n");
+			nvram_set("territory_code", "DB/01");
 		} else {
 			/* [A-Z][A-Z]/[0-9][0-9] */
 			if (buffer[2] != '/' ||
 			    !isupper(buffer[0]) || !isupper(buffer[1]) ||
 			    !isdigit(buffer[3]) || !isdigit(buffer[4]))
 			{
-				nvram_unset("territory_code");
+				_dprintf("Invalid territory_code format, using fallback DB/01\n");
+				nvram_set("territory_code", "DB/01");
 			} else {
 				nvram_set("territory_code", buffer);
 			}
@@ -2481,17 +2546,12 @@ void init_syspara(void)
 	if (linuxRead(dst, 0x20, bytes)<0)	/* The "linux" MTD partition, offset 0x20. */
 	{
 		fprintf(stderr, "READ firmware header: Out of scope\n");
-		nvram_set("productid", "unknown");
-		nvram_set("firmver", "unknown");
-	}
-	else
-#if defined(RTCONFIG_MT798X)
-	{
+		/* linux partition not found (e.g. MT798X UBI), fall back to build-time identifies */
 		strlcpy(productid, rt_buildname, sizeof(productid));
 		nvram_set("productid", trim_r(productid));
 		nvram_set("firmver", rt_version);
 	}
-#else
+	else
 	{
 		strncpy(productid, buffer + 4, 12);
 		productid[12] = 0;
@@ -2499,7 +2559,6 @@ void init_syspara(void)
 		nvram_set("productid", trim_r(productid));
 		nvram_set("firmver", trim_r(fwver));
 	}
-#endif
 
 #if defined(RTCONFIG_TCODE)
 #if defined(RTN56UB1)  
@@ -2545,9 +2604,13 @@ void init_syspara(void)
 #endif /* RTCONFIG_TCODE */
 
 	memset(buffer, 0, sizeof(buffer));
-	FRead(buffer, OFFSET_BOOT_VER, 4);
-//	sprintf(blver, "%c.%c.%c.%c", buffer[0], buffer[1], buffer[2], buffer[3]);
-	sprintf(blver, "%s-0%c-0%c-0%c-0%c", trim_r(productid), buffer[0], buffer[1], buffer[2], buffer[3]);
+	if (FRead(buffer, OFFSET_BOOT_VER, 4) < 0 || buffer[0] == 0xff || buffer[0] == '\0'
+	    || buffer[0] < 0x30 || buffer[0] > 0x7e) {
+		/* Dev board fallback: no valid bootloader version in Factory */
+		sprintf(blver, "%s-000-000-000-000", trim_r(productid));
+	} else {
+		sprintf(blver, "%s-0%c-0%c-0%c-0%c", trim_r(productid), buffer[0], buffer[1], buffer[2], buffer[3]);
+	}
 	nvram_set("blver", trim_r(blver));
 
 	_dprintf("mtd productid: %s\n", nvram_safe_get("productid"));
@@ -2618,13 +2681,28 @@ void init_syspara(void)
 #endif
 	{
 		char ipaddr_lan[16];
-		FRead(ipaddr_lan, OFFSET_IPADDR_LAN, sizeof(ipaddr_lan));
-		ipaddr_lan[sizeof(ipaddr_lan)-1] = '\0';
-		if((unsigned char)(ipaddr_lan[0]) != 0xff)
-		{
+		int valid_ip = 0;
+		memset(ipaddr_lan, 0, sizeof(ipaddr_lan));
+		if (FRead(ipaddr_lan, OFFSET_IPADDR_LAN, sizeof(ipaddr_lan)) < 0) {
+			_dprintf("READ IpAddr_Lan: Out of scope, using default\n");
+		} else {
+			ipaddr_lan[sizeof(ipaddr_lan)-1] = '\0';
+			/* Validate IPv4 dotted-quad format: a.b.c.d, each 0-255, not 0.0.0.0 */
+			unsigned int a = 256, b = 256, c = 256, d = 256;
+			if (sscanf(ipaddr_lan, "%u.%u.%u.%u", &a, &b, &c, &d) == 4
+			    && a <= 255 && b <= 255 && c <= 255 && d <= 255
+			    && (a != 0 || b != 0 || c != 0 || d != 0))
+				valid_ip = 1;
+		}
+		if (valid_ip) {
 			nvram_set("IpAddr_Lan", ipaddr_lan);
 		} else {
+			_dprintf("Invalid IpAddr_Lan in Factory, using build default (192.168.50.1)\n");
 			nvram_unset("IpAddr_Lan");
+			/* Force-set lan_ipaddr so that br0 always gets a valid IP,
+			 * regardless of whether rc_support contains "defip" */
+			nvram_set("lan_ipaddr", "192.168.50.1");
+			nvram_set("lan_ipaddr_rt", "192.168.50.1");
 		}
 	}
 
@@ -2685,6 +2763,26 @@ void init_syspara(void)
 	_dprintf("current FW firmver: %s\n", nvram_safe_get("firmver"));
 
 	getSN();
+
+	/* Dev board fallback: if getSN() didn't set a valid serial number,
+	 * generate one from productid + device-tree serial */
+	if (!nvram_get("serial_no") || nvram_match("serial_no", "")) {
+		char sn_fb[32];
+		FILE *fp = fopen("/proc/device-tree/serial-number", "r");
+		if (fp) {
+			char dtserial[32] = {0};
+			fread(dtserial, 1, sizeof(dtserial) - 1, fp);
+			fclose(fp);
+			if (dtserial[0])
+				snprintf(sn_fb, sizeof(sn_fb), "DEV-%s", dtserial);
+			else
+				snprintf(sn_fb, sizeof(sn_fb), "DEV-%s", rt_buildname);
+		} else {
+			snprintf(sn_fb, sizeof(sn_fb), "DEV-%s", rt_buildname);
+		}
+		nvram_set("serial_no", sn_fb);
+		_dprintf("Using fallback serial number: %s\n", sn_fb);
+	}
 }
 
 #ifdef RTCONFIG_ATEUSB3_FORCE
