@@ -82,44 +82,111 @@ static int get_mtd_info(const char *mtd_name, struct mtd_info *mi)
 	int i, ret = -3, sz, esz, r;
 	char nm[12], *p;
 	mtd_info_t m;
+	int use_sysfs = 0;
 
 	if (!mtd_name || *mtd_name == '\0' || !mi)
 		return -1;
 
-	if (!(fp = fopen("/proc/mtd", "r")))
-		return -2;
-
-	memset(mi, 0, sizeof(struct mtd_info));
-	fgets(line, sizeof(line), fp); //skip the 1st line
-	while (ret < 0 && fgets(line, sizeof(line), fp)) {
-		if (sscanf(line, "mtd%d: %x %x \"%s\"", &i, &sz, &esz, nm) != 4)
-			continue;
-
-		/* strip tailed " character, if present. */
-		if ((p = strchr(nm, '"')) != NULL)
-			*p = '\0';
-		if (strcmp(mtd_name, nm))
-			continue;
-
-		snprintf(mtd_dev, sizeof(mtd_dev), "/dev/mtd%d", i);
-		if ((r = open(mtd_dev, O_RDWR|O_SYNC)) < 0)
-			continue;
-
-		if (ioctl(r, MEMGETINFO, &m) < 0) {
-			close(r);
-			continue;
-		}
-
-		snprintf(mi->dev, sizeof(mi->dev), "mtd%d", i);
-		mi->size = sz;
-		mi->erasesize = esz;
-		snprintf(mi->name, sizeof(mi->name), "%s", mtd_name);
-		mi->type = m.type;
-		mi->writesize = m.writesize;
-		ret = i;
-		close(r);
+	if (!(fp = fopen("/proc/mtd", "r"))) {
+		fprintf(stderr, "get_mtd_info: fopen(/proc/mtd) failed, errno=%d (%s), falling back to sysfs\n",
+			errno, strerror(errno));
+		use_sysfs = 1;
 	}
-	fclose(fp);
+
+	if (!use_sysfs) {
+		memset(mi, 0, sizeof(struct mtd_info));
+		fgets(line, sizeof(line), fp); //skip the 1st line
+		while (ret < 0 && fgets(line, sizeof(line), fp)) {
+			if (sscanf(line, "mtd%d: %x %x \"%[^\"]\"", &i, &sz, &esz, nm) != 4)
+				continue;
+
+			/* strip tailed " character, if present. */
+			if ((p = strchr(nm, '"')) != NULL)
+				*p = '\0';
+			if (strcmp(mtd_name, nm))
+				continue;
+
+			snprintf(mtd_dev, sizeof(mtd_dev), "/dev/mtd%d", i);
+			if ((r = open(mtd_dev, O_RDWR|O_SYNC)) < 0)
+				continue;
+
+			if (ioctl(r, MEMGETINFO, &m) < 0) {
+				close(r);
+				continue;
+			}
+
+			snprintf(mi->dev, sizeof(mi->dev), "mtd%d", i);
+			mi->size = sz;
+			mi->erasesize = esz;
+			snprintf(mi->name, sizeof(mi->name), "%s", mtd_name);
+			mi->type = m.type;
+			mi->writesize = m.writesize;
+			ret = i;
+			close(r);
+		}
+		fclose(fp);
+	} else {
+		/* Fallback: use /sys/class/mtd/mtdX/name to find partition */
+		char sysfs_name[64], name_buf[64];
+		memset(mi, 0, sizeof(struct mtd_info));
+		for (i = 0; i < 32; i++) {
+			snprintf(sysfs_name, sizeof(sysfs_name), "/sys/class/mtd/mtd%d/name", i);
+			fp = fopen(sysfs_name, "r");
+			if (!fp)
+				continue;
+			name_buf[0] = '\0';
+			if (fgets(name_buf, sizeof(name_buf), fp)) {
+				/* strip trailing newline */
+				p = strchr(name_buf, '\n');
+				if (p) *p = '\0';
+				if (strcmp(mtd_name, name_buf) == 0) {
+					/* Found the right partition, now get size/erasesize from sysfs */
+					fclose(fp);
+
+					snprintf(sysfs_name, sizeof(sysfs_name), "/sys/class/mtd/mtd%d/size", i);
+					fp = fopen(sysfs_name, "r");
+					sz = 0;
+					if (fp) {
+						if (fgets(line, sizeof(line), fp))
+							sz = (int)strtoul(line, NULL, 0);
+						fclose(fp);
+					}
+
+					snprintf(sysfs_name, sizeof(sysfs_name), "/sys/class/mtd/mtd%d/erasesize", i);
+					fp = fopen(sysfs_name, "r");
+					esz = 0;
+					if (fp) {
+						if (fgets(line, sizeof(line), fp))
+							esz = (int)strtoul(line, NULL, 0);
+						fclose(fp);
+					}
+
+					snprintf(mtd_dev, sizeof(mtd_dev), "/dev/mtd%d", i);
+					r = open(mtd_dev, O_RDWR|O_SYNC);
+					if (r < 0)
+						break;
+
+					if (ioctl(r, MEMGETINFO, &m) < 0) {
+						close(r);
+						break;
+					}
+
+					snprintf(mi->dev, sizeof(mi->dev), "mtd%d", i);
+					mi->size = sz;
+					mi->erasesize = esz;
+					snprintf(mi->name, sizeof(mi->name), "%s", mtd_name);
+					mi->type = m.type;
+					mi->writesize = m.writesize;
+					ret = i;
+					close(r);
+					fprintf(stderr, "get_mtd_info: found %s via sysfs as mtd%d, size=0x%x\n",
+						mtd_name, i, sz);
+					return ret;
+				}
+			}
+			fclose(fp);
+		}
+	}
 
 	return ret;
 }
@@ -129,21 +196,21 @@ int flash_mtd_init_info(void)
 	FILE *fp;
 	char line[128];
 	int i, sz, esz;
-	char nm[12];
+	char nm[64];
 	int total_sz;
+	char sysfs_name[64], *p;
 
 	memset(info, 0, sizeof(info));
 	if ((fp = fopen("/proc/mtd", "r"))) {
 		fgets(line, sizeof(line), fp); //skip the 1st line
 		while (fgets(line, sizeof(line), fp)) {
-			if (sscanf(line, "mtd%d: %x %x \"%s\"", &i, &sz, &esz, nm)) {
+			if (sscanf(line, "mtd%d: %x %x \"%[^\"]\"", &i, &sz, &esz, nm) == 4) {
 				if (i >= NUM_INFO)
 					printf("please enlarge 'NUM_INFO'\n");
 				else {
 					snprintf(info[i].dev, sizeof(info[i].dev), "mtd%d", i);
 					info[i].size = sz;
 					info[i].erasesize = esz;
-					nm[strlen((char *)nm)-1] = '\0'; //FIXME: sscanf
 					snprintf(info[i].name, sizeof(info[i].name), "%s", nm);
 				}
 			}
@@ -151,8 +218,50 @@ int flash_mtd_init_info(void)
 		fclose(fp);
 	}
 	else {
-		fprintf(stderr, "failed to open /proc/mtd\n");
-		return -1;
+		/* Fallback: use /sys/class/mtd/mtdX/name */
+		fprintf(stderr, "flash_mtd_init_info: /proc/mtd not available (errno=%d %s), trying sysfs\n",
+			errno, strerror(errno));
+		memset(info, 0, sizeof(info));
+		for (i = 0; i < NUM_INFO; i++) {
+			/* Read partition name */
+			snprintf(sysfs_name, sizeof(sysfs_name), "/sys/class/mtd/mtd%d/name", i);
+			fp = fopen(sysfs_name, "r");
+			if (!fp)
+				continue;
+			nm[0] = '\0';
+			if (fgets(nm, sizeof(nm), fp)) {
+				p = strchr(nm, '\n');
+				if (p) *p = '\0';
+			}
+			fclose(fp);
+			if (nm[0] == '\0')
+				continue;
+
+			/* Read size */
+			snprintf(sysfs_name, sizeof(sysfs_name), "/sys/class/mtd/mtd%d/size", i);
+			fp = fopen(sysfs_name, "r");
+			sz = 0;
+			if (fp) {
+				if (fgets(line, sizeof(line), fp))
+					sz = (int)strtoul(line, NULL, 0);
+				fclose(fp);
+			}
+
+			/* Read erasesize */
+			snprintf(sysfs_name, sizeof(sysfs_name), "/sys/class/mtd/mtd%d/erasesize", i);
+			fp = fopen(sysfs_name, "r");
+			esz = 0;
+			if (fp) {
+				if (fgets(line, sizeof(line), fp))
+					esz = (int)strtoul(line, NULL, 0);
+				fclose(fp);
+			}
+
+			snprintf(info[i].dev, sizeof(info[i].dev), "mtd%d", i);
+			info[i].size = sz;
+			info[i].erasesize = esz;
+			snprintf(info[i].name, sizeof(info[i].name), "%s", nm);
+		}
 	}
 
 	total_sz = 0;
@@ -253,12 +362,21 @@ int flash_mtd_read(int offset, int count)
  */
 int MTDPartitionRead(const char *mtd_name, const unsigned char *buf, int offset, int count)
 {
-	int cnt, fd, ret;
+	int cnt, fd, ret, gmi_ret;
 	unsigned char *p;
 	struct mtd_info info, *mi = &info;
 
-	if (!mtd_name || *mtd_name == '\0' || !buf || offset < 0 || count <= 0 || get_mtd_info(mtd_name, mi) < 0)
+	if (!mtd_name || *mtd_name == '\0' || !buf || offset < 0 || count <= 0) {
+		fprintf(stderr, "MTDPartitionRead: bad args name=%s buf=%p offset=%d count=%d\n",
+			mtd_name ? mtd_name : "NULL", buf, offset, count);
 		return -1;
+	}
+	if ((gmi_ret = get_mtd_info(mtd_name, mi)) < 0) {
+		fprintf(stderr, "MTDPartitionRead: get_mtd_info(%s) failed, ret=%d\n", mtd_name, gmi_ret);
+		return -1;
+	}
+	fprintf(stderr, "MTDPartitionRead: %s dev=%s size=0x%x offset=0x%x count=%d\n",
+		mtd_name, mi->dev, mi->size, offset, count);
 	if ((offset + count) > mi->size) {
 		fprintf(stderr, "%s: Out of Factory partition. (offset 0x%x count 0x%x)\n",
 			__func__, offset, count);
@@ -441,11 +559,18 @@ int FRead(const unsigned char *buf, int addr, int count)
 	/* If address fall in old Factory partition, call FactoryRead() instead. */
 	if (addr >= OFFSET_MTD_FACTORY &&
 	    (addr + count) <= (OFFSET_MTD_FACTORY + SPI_PARALLEL_NOR_FLASH_FACTORY_LENGTH)) {
-		return FactoryRead(buf, addr - OFFSET_MTD_FACTORY, count);
+		int ret = FactoryRead(buf, addr - OFFSET_MTD_FACTORY, count);
+		fprintf(stderr, "FRead: addr=0x%x count=%d -> FactoryRead(off=0x%x)=%d, FACTORY_LEN=0x%x, boundary=0x%x\n",
+			addr, count, addr - OFFSET_MTD_FACTORY, ret,
+			SPI_PARALLEL_NOR_FLASH_FACTORY_LENGTH,
+			OFFSET_MTD_FACTORY + SPI_PARALLEL_NOR_FLASH_FACTORY_LENGTH);
+		return ret;
 	}
 
-	fprintf(stderr, "%s: Read data out of factory region or cross old factory boundary. (addr 0x%x count 0x%x)\n",
-		__func__, addr, count);
+	fprintf(stderr, "FRead: OUT OF SCOPE: addr=0x%x count=%d, range=[0x%x,0x%x), FACTORY_LEN=0x%x\n",
+		addr, count, OFFSET_MTD_FACTORY,
+		OFFSET_MTD_FACTORY + SPI_PARALLEL_NOR_FLASH_FACTORY_LENGTH,
+		SPI_PARALLEL_NOR_FLASH_FACTORY_LENGTH);
 	return FlashRead(buf, addr, count);
 }
 
