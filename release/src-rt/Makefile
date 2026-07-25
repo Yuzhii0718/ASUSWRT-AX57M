@@ -349,6 +349,13 @@ ifeq ($(OPDBG),y)
 export IMGNAME := $(IMGNAME)_OPDBG
 endif
 
+# Firmware extension: .img for MT798X (new U-Boot, no TRX), .trx for others
+ifeq ($(MT798X),y)
+FW_EXT := .img
+else
+FW_EXT := .trx
+endif
+
 ifeq ($(DSL_REMOTE),y)
 ifeq ($(BUILD_NAME),DSL-AC68U)
 TCFWVER := $(shell cat ./tc_fw/fwver.conf)
@@ -846,16 +853,6 @@ ifeq ($(TRX_TAIL_INFO),y)
 	asustools/mktail -o image/tail_info -t 1 -f 0 -b $(SERIALNO) -e $(EXTENDNO) -r 0 -r $(SFINFO)
 	cat image/tail_info >> image/$(IMGNAME).img
 endif
-	#generate ASUS Image
-	@ISIZE=`wc -c image/$(IMGNAME).img | awk '{print $$1}'` ; \
-		TSIZE=`wc -c image/tail_info | awk '{print $$1}'`; \
-		KSIZE=`wc -c $(PLATFORMDIR)/zImage.img | awk '{print $$1}'` ; \
-		RSIZE=`wc -c $(PLATFORMDIR)/target.image | awk '{print $$1}'` ; \
-		PAD2=`expr $${ISIZE} - $${KSIZE} - $${RSIZE} - $${TSIZE}` ; \
-		echo "PAD2: $${PAD2}" ; \
-	asustools/mkimage -A $(ARCH) -O linux -T kernel -C lzma -a $(LOADADDR) -e $(ENTRYADDR)\
-			-n $(BUILD_NAME) -V "$(KERNEL_VER)" "$(FS_VER)" "$(SERIALNO)" "$(EXTENDNO)" "0" "0" "0" "0" "0" "0" \
-			-d image/$(IMGNAME).img image/$(IMGNAME).trx
 else ifeq ($(CONFIG_RALINK),y)
 # MTK/Ralink platform
 	# generate kernel part
@@ -1165,7 +1162,11 @@ endif
 	
 	#@asustools/mkimage -A mips -O linux -d $(RSDKDIR)/image/fw.bin image/$(IMGNAME).trx
 endif
+ifeq ($(MT798X),y)
+	md5sum image/$(IMGNAME).img > image/$(IMGNAME).md5
+else
 	md5sum image/$(IMGNAME).trx > image/$(IMGNAME).md5
+endif
 
 ifeq ($(DSL_REMOTE),y)
 	$(call dsl_genbintrx_epilog)
@@ -1200,21 +1201,21 @@ ifneq ($(LIVE_UPDATE_RSA),)
 ifneq (,$(wildcard $(KEY_PATH)/private*.pem))
 	for f in $(KEY_PATH)/private*.pem; do \
 		rsa_idx=$$(echo $${f} | sed "s/.*\///" | sed "s/private//" | sed "s/.pem//"); \
-		$$(openssl sha1 -sign $(KEY_PATH)/private$${rsa_idx}.pem -out image/$(IMGNAME)_rsa$${rsa_idx}.zip image/$(IMGNAME).trx); \
+		$$(openssl sha1 -sign $(KEY_PATH)/private$${rsa_idx}.pem -out image/$(IMGNAME)_rsa$${rsa_idx}.zip image/$(IMGNAME)$(FW_EXT)); \
 	done
 else
 ifneq (,$(wildcard $(SRC_ROOT)/../../buildtools/private.pem))
-	openssl sha1 -sign $(SRC_ROOT)/../../buildtools/private.pem -out image/$(IMGNAME)_rsa.zip image/$(IMGNAME).trx
+	openssl sha1 -sign $(SRC_ROOT)/../../buildtools/private.pem -out image/$(IMGNAME)_rsa.zip image/$(IMGNAME)$(FW_EXT)
 endif
 endif
 else
 ifeq ($(HTTPS),y)
 ifneq (,$(wildcard $(SRC_ROOT)/../../buildtools/private.pem))
-	openssl sha1 -sign $(SRC_ROOT)/../../buildtools/private.pem -out image/$(IMGNAME)_rsa.zip image/$(IMGNAME).trx
+	openssl sha1 -sign $(SRC_ROOT)/../../buildtools/private.pem -out image/$(IMGNAME)_rsa.zip image/$(IMGNAME)$(FW_EXT)
 endif
 endif
 endif
-	ln -sf $(IMGNAME).trx image/$(BUILD_NAME).trx
+	ln -sf $(IMGNAME)$(FW_EXT) image/$(BUILD_NAME)$(FW_EXT)
 ifeq ($(ARM),y)
 	ln -sf $(LINUXDIR)/vmlinux image/vmlinux
 	ln -sf $(LINUXDIR)/vmlinux.o image/vmlinux.o
