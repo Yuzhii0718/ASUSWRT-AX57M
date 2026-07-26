@@ -1665,7 +1665,7 @@ void init_wl(void)
 	system("dd if=/dev/mtdblock3 of=/lib/firmware/e2p bs=131072 skip=0 count=1");
 #elif defined (RTCONFIG_MT798X) // Note: should parse INDEX[0-2]_EEPROM_size at 1profile.dat
 	if (!f_exists("/tmp/e2p"))
-		system("dd if=/dev/mtd3 of=/tmp/e2p bs=655360 skip=0 count=1");
+		system("dd if=/dev/$(grep '\"Factory\"' /proc/mtd | cut -d: -f1) of=/tmp/e2p bs=655360 skip=0 count=1");
 #else
 	system("dd if=/dev/mtdblock3 of=/lib/firmware/e2p bs=65536 skip=0 count=1");
 #endif
