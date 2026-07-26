@@ -88,7 +88,7 @@ export MT7981_ADV_BASE := MUSL64=y MUSL_LIBC=y IPV6SUPP=y RALINK=y NEW_RGDM=y HT
 
 export RT-AX52 := ${RT-AX52AX57M_BASE} BW160M=n BUILD_NAME="RT-AX52"
 export RT-AX57M := ${RT-AX52AX57M_BASE} BW160M=n WANRED_LED=y BWDPI=y UUPLUGIN=y BUILD_NAME="RT-AX57M"
-export RT-8103AX := ${RT-AX52AX57M_BASE} BW160M=n BWDPI=y UUPLUGIN=y BUILD_NAME="RT-8103AX"
+export RT-8103AX := $(MT7981_ADV_BASE) BUILD_NAME="RT-8103AX"
 
 ############################################################################
 # MT7986A (Filogic 830) - continued

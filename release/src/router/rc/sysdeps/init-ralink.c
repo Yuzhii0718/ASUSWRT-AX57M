@@ -489,7 +489,7 @@ int lan_port_bit_shift = 1;
 #if defined(RTCONFIG_PORT2_DEVICE)
 #if defined(XD4S) 
 int lan_port_bit_shift = 3; //in order to specify LAN1 of switch_port_mapping
-#elif defined(PRTAX57_GO)
+#elif defined(PRTAX57_GO) || defined(RT8103AX)
 int lan_port_bit_shift = 0; 
 #else
 //TBD

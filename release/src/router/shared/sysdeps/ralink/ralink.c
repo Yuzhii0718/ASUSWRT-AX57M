@@ -17,7 +17,7 @@ extern int iface_name_to_vport(const char *iface);
 #define PORT_UNITS 2
 #elif defined(TUFAX4200) || defined(TUFAX6000)
 #define PORT_UNITS 6
-#elif defined(RTAX59U)
+#elif defined(RTAX59U) || defined(RT8103AX)
 #define PORT_UNITS 4
 #else
 #define PORT_UNITS 6
@@ -34,7 +34,7 @@ static const char *query_ifname[PORT_UNITS] = { //Aimesh RE
         "eth0", "eth1"
 #elif defined(TUFAX4200) || defined(TUFAX6000)
 	"lan5", "lan4", "lan3", "lan2", "lan1", "eth1"
-#elif defined(RTAX59U)
+#elif defined(RTAX59U) || defined(RT8103AX)
         "lan3", "lan2", "lan1", "eth1"	
 #else
 //      P0      P1      P2      P3      P4      P5
