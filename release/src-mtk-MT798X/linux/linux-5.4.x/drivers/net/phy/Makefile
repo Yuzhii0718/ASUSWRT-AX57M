@@ -72,7 +72,9 @@ ifdef CONFIG_AQUANTIA_PHY_FW_DOWNLOAD
 aquantia-objs			+= aquantia_firmware.o
 endif
 obj-$(CONFIG_AIROHA_EN8801SC_PHY)	+= en8801sc.o
+air_en8811h-y := air_en8811h_main.o air_en8811h_api.o
 obj-$(CONFIG_AIROHA_EN8811H_PHY)	+= air_en8811h.o
+obj-$(CONFIG_AIR_AN8811HB_PHY)	+= air_an8811hb.o
 obj-$(CONFIG_AQUANTIA_PHY)	+= aquantia.o
 obj-$(CONFIG_AX88796B_PHY)	+= ax88796b.o
 obj-$(CONFIG_AT803X_PHY)	+= at803x.o

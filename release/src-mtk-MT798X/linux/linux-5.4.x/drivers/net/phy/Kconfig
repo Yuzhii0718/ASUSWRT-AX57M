@@ -355,6 +355,23 @@ config AIROHA_EN8811H_PHY
 	---help---
 	  Currently supports the Airoha EN8811H PHY.
 
+config AIROHA_EN8811H_PHY_DEBUGFS
+	bool "EN8811H debugfs support"
+	depends on AIROHA_EN8811H_PHY
+	---help---
+	  Enable creation of debugfs files for the EN8811H drivers.
+
+config AIR_AN8811HB_PHY
+	tristate "Drivers for Airoha AN8811HB 2.5G Gigabit PHY"
+	---help---
+	  Currently supports the Airoha AN8811HB PHY.
+
+config AIR_AN8811HB_PHY_DEBUGFS
+	bool "AN8811HB debugfs support"
+	depends on AIR_AN8811HB_PHY
+	---help---
+	  Enable creation of debugfs files for the AN8811HB drivers.
+
 config ADIN_PHY
 	tristate "Analog Devices Industrial Ethernet PHYs"
 	help
