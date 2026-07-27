@@ -563,11 +563,14 @@ ifneq ($(RTCONFIG_TOR), y)
 	rm -rf $(INSTALLDIR)/www/Advanced_TOR_Content.asp
 endif
 
+ifneq ($(MT798X),)
+else
 ifneq ($(BUILD_NAME),$(filter $(BUILD_NAME), $(MODELS_HAVE_TRAFFIC_ANALYZER)))
 	rm -rf $(INSTALLDIR)/www/TrafficAnalyzer_Statistic.asp
 	rm -rf $(INSTALLDIR)/www/images/New_ui/cancel.svg
 	rm -rf $(INSTALLDIR)/www/chart.js
 	rm -rf $(INSTALLDIR)/www/datepicker.css
+endif
 endif
 
 ifneq ($(RTCONFIG_KEY_GUARD), y)
@@ -733,6 +736,8 @@ else ifeq ($(BUILD_NAME),VZW-AC1300)
 	cd $(INSTALLDIR)/www/require && mv menuTrees/menuTree_VZW-AC1300.js modules/menuTree.js
 else ifeq ($(BUILD_NAME),$(filter $(BUILD_NAME), TUF-AX3000 TUF-AX3000_V2 TUF-AX4200 TUF-AX5400 TUF-AX6000 RT-8103AX))
 	cd $(INSTALLDIR)/www/require && mv menuTrees/menuTree_TUF.js modules/menuTree.js	
+else ifeq ($(MT798X),y)
+	cd $(INSTALLDIR)/www/require && mv menuTrees/menuTree_bwdpi_traffic_analyzer.js modules/menuTree.js
 else ifeq ($(RTCONFIG_BWDPI),y)
 ifeq ($(findstring $(BUILD_NAME),$(MODELS_HAVE_TRAFFIC_ANALYZER)),)
 	cd $(INSTALLDIR)/www/require && mv menuTrees/menuTree_bwdpi_no_traffic_analyzer.js modules/menuTree.js
