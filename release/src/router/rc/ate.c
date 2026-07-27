@@ -2284,6 +2284,33 @@ int asus_ate_command(const char *command, const char *value, const char *value2)
 		if (!chk_envrams_proc())
 			return EINVAL;
 #endif
+#if defined(RTCONFIG_MT798X)
+		/* MT798X: 5G MAC is derived from 2.4G MAC (Factory offset 0x4) 
+		 * by adding 2 to the first byte (e.g., 0x78 -> 0x7A)
+		 * setMAC_5G() in prebuilt ate-ralink.o is a stub (always returns 0)
+		 * We need to compute correct 5G MAC and write to nvram wl1_hwaddr
+		 */
+		char *p = (char *) value;  // value is 2.4G MAC from factory offset 0x4
+		char UpperMac[20] = {0};
+		unsigned char mac_bytes[6] = {0};
+		int i;
+		
+		// Parse MAC string to bytes
+		sscanf(p, "%hhx:%hhx:%hhx:%hhx:%hhx:%hhx", 
+		       &mac_bytes[0], &mac_bytes[1], &mac_bytes[2],
+		       &mac_bytes[3], &mac_bytes[4], &mac_bytes[5]);
+		
+		// Add 2 to the first byte (0x78 -> 0x7A, 0x79 -> 0x7B, etc.)
+		mac_bytes[0] += 2;  // Simple addition instead of XOR
+		
+		// Format back to uppercase MAC string
+		sprintf(UpperMac, "%02X:%02X:%02X:%02X:%02X:%02X",
+		        mac_bytes[0], mac_bytes[1], mac_bytes[2],
+		        mac_bytes[3], mac_bytes[4], mac_bytes[5]);
+		
+		nvram_set("wl1_hwaddr", UpperMac);
+		return 0;
+#else
 		//Andy Chiu, 2016/02/04.
 		char *p = (char *) value;
 		char UpperMac[20] = {0};
@@ -2303,6 +2330,7 @@ int asus_ate_command(const char *command, const char *value, const char *value2)
 			return EINVAL;
 		}
 		return 0;
+#endif
 	}
 #ifdef RTCONFIG_HAS_5G_2
 	else if (!strcmp(command, "Set_MacAddr_5G_2")) {
