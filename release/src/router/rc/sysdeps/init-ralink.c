@@ -2186,6 +2186,18 @@ void init_syspara(void)
 		ether_etoa(buffer, macaddr2);
 	}
 #endif
+#if defined(RTCONFIG_MT798X)
+	/* MT798X: Factory stores distinct MACs per interface:
+	 *   0x4  = WiFi base MAC (already read into macaddr/macaddr2 above)
+	 *   0x2A = LAN MAC (OFFSET_MAC_GMAC0)
+	 *   0x24 = WAN MAC (OFFSET_MAC_GMAC1)
+	 * Override macaddr/macaddr2 with the Ethernet offsets.
+	 * If blank (dev board with all-FF Factory), keep the fallback above. */
+	if (FRead(dst, OFFSET_MAC_GMAC0, bytes) >= 0 && buffer[0] != 0xff)
+		ether_etoa(buffer, macaddr);
+	if (FRead(dst, OFFSET_MAC_GMAC1, bytes) >= 0 && buffer[0] != 0xff)
+		ether_etoa(buffer, macaddr2);
+#endif
 #ifdef RTAC51U	/* FIX EU2CN */
 	_dprintf("# MAC_2G: %s\n", macaddr2);
 	if(dst[0] == 0xD0 && dst[1] == 0x17 && dst[2] == 0xC2) {
@@ -2238,7 +2250,7 @@ void init_syspara(void)
 #if defined(RTCONFIG_MT798X)
 	nvram_set("wl_mssid", "1");
 #endif
-#if defined(RTAC1200V2) || defined(RTACRH18) || defined(RT4GAC86U) || defined(RTAX53U) || defined(RT4GAX56) || defined(RTAX54) || defined(XD4S) || defined(RTCONFIG_MT798X)
+#if defined(RTAC1200V2) || defined(RTACRH18) || defined(RT4GAC86U) || defined(RTAX53U) || defined(RT4GAX56) || defined(RTAX54) || defined(XD4S)
 	/* set et1macaddr the same as et0macaddr for spec. */
 	strcpy(macaddr, macaddr2);
 #endif
