@@ -296,324 +296,39 @@ function change_beta_path(flag){
 function initial(){
 	show_menu();
 	showDST();
-	load_time_hour();
-	load_time_min();
-	
-	document.getElementById("asus_link").href = Downloadlink;	//#FW_n2#
-	document.getElementById("asus_link2").href = helplink;	//#FW_desc0#
-	document.getElementById("faq_link1").href=faq_href1;	//#FW_n3#
 
-	$("#FWString").append("<span class='current_fw_release_note'>"+FWString+"</span>");	//Untranslated
+	// Show firmware version only (MT798X UBI layout - no web firmware upgrade)
+	$("#FWString").append("<span style='color:#FFFFFF;'>"+FWString+"</span>");
 
-	if(afwupg_support && webs_update_enable_orig == 1){
-		$(".current_fw_release_note").click({"model_name": "<#Web_Title2#>", "fwver": FWString}, show_current_release_note);		
+	// Hide all upgrade-related elements
+	$("table").remove("#auto_upgrade_setting");
+	$("table").remove("#secur_stab_setting");
+	$("#sig_ver_field").hide();
+	$("#update_div").hide();
+	$("#check_beta_div").hide();
+	$("#linkpage_div").hide();
+	$("#check_states").hide();
+	$("#manually_upgrade_tr").hide();
+	$("#modem_fw_upgrade").hide();
+	$(".aimesh_manual_fw_update_hint").hide();
+
+	// Hide firmware upgrade notes (not applicable for UBI layout)
+	$("#fw_note2").hide();
+	$("#fw_note3").hide();
+	$("#fw_note5").hide();
+
+	// Hide AiMesh related elements
+	$("#fw_tr").hide();
+
+	// Language selection for U-Boot recovery instructions
+	if(document.form.preferred_lang.value == "CN") {
+		$(".uboot_lang_en").hide();
+	} else {
+		$(".uboot_lang_cn").hide();
 	}
 
-	if(revertfw_support && RevertFWver != ""){
-		$("#FWString").append("<span class='label-fw_revert'>Revert</span>");	//Untranslated
-		$(".label-fw_revert").css("margin-left", "10px")
-							 .css("cursor", "pointer")
-							 .css("text-decoration", "underline")
-							 .click(show_revertfw_release_note);
-		$("#update_div").css("margin-left", "220px");
-	}
-	
-	var exist_update = 0;
-	if(amesh_support && (isSwMode("rt") || isSwMode("ap")) && ameshRouter_support) {
-		
-		var have_node = false;
-		var get_cfg_clientlist = httpApi.hookGet("get_cfg_clientlist", true);		
-		$("#fw_version_tr").empty();
-		var html = "";
-		html += "<tr id='update_div' style='display:none;'>";
-		html += "<th><#AiMesh_Check_Update#></th>";
-		html += "<td>";
-		html += '<div>';
-		html += '<input type="button" id="update" name="update" class="button_gen" onclick="show_offline_msg(true);" value="<#liveupdate#>" />';
-		html += '<div><input type="button" id="amas_update" class="button_gen" style="margin:-33px 0px 0px 200px;display:none;" onclick="cfgsync_firmware_upgrade();" value="<#CTL_upgrade#>"/><div>';
-		html += '</div>';
-		html += '<div id="check_beta_div"><input type="checkbox" name="check_beta" id="amas_beta" onclick="change_beta_path()" value="" <% nvram_match("webs_update_beta", "1", "checked"); %>/><#FW_beta_check#></div>';		// Untranslated 
-		html += '<div id="linkpage_div" class="button_helplink" style="margin-left:200px;margin-top:-38px;display:none;">';
-		html += '<a id="linkpage" target="_blank"><div style="padding-top:5px;"><#liveupdate#></div></a>';
-		html += '</div>';
-		html += '<div id="check_states">';
-		html += '<span id="update_states"></span>';
-		html += '<img id="update_scan" style="display:none;" src="images/InternetScan.gif" />';
-		html += '</div>';
-		html += '<div style="height:15px;"></div>';
-		html += "</td>";
-		html += "</tr>";
-		$("#fw_version_tr").before(html);
-
-		var mac_id = '<% get_lan_hwaddr(); %>'.replace(/:/g, "");
-		html = "";
-		html += "<tr>";
-		html += "<td class='aimesh_node_category_bg' colspan='2'><#AiMesh_Router#></td>";
-		html += "</tr>";
-		html += "<tr>";
-		html += "<th>";
-		html += "<#Web_Title2#>";
-		html += "</th>";
-		html += "</th>";
-		html += "<td id='amas_" + mac_id + "' current_online='1'>";
-		html += "<div id='current_version'><#ADSL_FW_item1#> : <span class='checkFWCurrent'>" + FWString + "</span>";
-		if(revertfw_support && RevertFWver != "" && !isSame_org && !isUnderREQ){
-			html += "<span class='aimesh_fw_revert'>Revert</span>";
-		}
-		html += "</div>";
-		html += "<div id='amesh_manual_upload_fw'>";
-		html += "<#FW_manual_update#> : ";
-		html += "<span class='aimesh_fw_update_offline' style='margin-left:0px;' onclick='open_AiMesh_router_fw_upgrade();'><#CTL_upload#></span>";
-		html += "</div>";
-		html += "<div id='checkNewFW' class='checkNewFW' style='display:none;'><#ADSL_FW_item3#> : <span class='checkFWResult'></span></div>";
-		html += "</td>";
-		html += "</tr>";
-		$("#fw_version_tr").before(html);
-		if(afwupg_support && webs_update_enable_orig == 1){
-			$("#amas_" + mac_id + "").children().find(".checkFWCurrent").addClass("aimesh_fw_release_note");
-			$("#amas_" + mac_id + "").children().find(".checkFWCurrent").click({"model_name": "<#Web_Title2#>", "fwver": FWString}, show_current_release_note);
-		}
-		if(revertfw_support && RevertFWver != "" && !isSame_org && !isUnderREQ){
-			//$("#amas_" + mac_id + "").children().find(".aimesh_fw_revert").click({"model_name": frsmodel, "newfwver": RevertFWver}, show_revertfw_release_note);
-			$("#amas_" + mac_id + "").children().find(".aimesh_fw_revert").click(show_revertfw_release_note);
-		}
-
-		for (var idx in get_cfg_clientlist) {
-			if (get_cfg_clientlist.hasOwnProperty(idx)) {
-				if(idx == "0")
-					continue;//filter CAP
-				var frs_model_name = get_cfg_clientlist[idx].frs_model_name;
-				var model_name = get_cfg_clientlist[idx].model_name;
-				var ui_model_name = get_cfg_clientlist[idx].ui_model_name;
-				var fwver = get_cfg_clientlist[idx].fwver;
-				var online = get_cfg_clientlist[idx].online;
-				var mac = get_cfg_clientlist[idx].mac;
-				var mac_id = mac.replace(/:/g, "");
-				var capability_value = (get_cfg_clientlist[idx].capability["4"]=="")?0:get_cfg_clientlist[idx].capability["4"];
-				var ip = get_cfg_clientlist[idx].ip;
-				var alias = "Home";
-				var labelMac = mac;
-				httpApi.getAiMeshLabelMac(model_name, mac, 
-					function(_callBackMac){
-						labelMac = _callBackMac;
-					}
-				);
-				if("config" in get_cfg_clientlist[idx]) {
-					if("misc" in get_cfg_clientlist[idx].config) {
-						if("cfg_alias" in get_cfg_clientlist[idx].config.misc) {
-							if(get_cfg_clientlist[idx].config.misc.cfg_alias != "")
-								alias = get_cfg_clientlist[idx].config.misc.cfg_alias;
-						}
-					}
-				}
-				html = "";
-				if(!have_node) {
-					html += "<tr>";
-					html += "<td class='aimesh_node_category_bg' colspan='2'><#AiMesh_Node#></td>";
-					html += "</tr>";
-				}
-				html += "<tr>";
-				html += "<th>";
-				html += ui_model_name + " ( " + labelMac + " )";
-				html += "<br>";
-				html += "<#AiMesh_NodeLocation#> : " + htmlEnDeCode.htmlEncode(alias);
-				html += "</th>";
-				html += "<td id='amas_" + mac_id + "' current_online='" + online + "'>";
-				html += "<div id='current_version'><#ADSL_FW_item1#> : <span class='checkFWCurrent'>" + fwver + "</span>";
-				html += "<span class='aimesh_fw_revert_node'></span>";
-				html += "</div>";
-				html += "<div id='manual_firmware_update'>";
-				var support_manual_fw = check_AiMesh_fw_version(fwver);
-				html += gen_AiMesh_fw_status(support_manual_fw, get_cfg_clientlist[idx]);
-				html += "</div>";
-				html += "<div id='checkNewFW' class='checkNewFW' style='display:none;'><#ADSL_FW_item3#> : <span class='checkFWResult'></span>";
-				html += "</div>";
-				html += "</td>";
-				html += "</tr>";
-				$("#fw_version_tr").before(html);
-
-				if(afwupg_support && online == 1 && webs_update_enable_orig == 1){
-					$("#amas_" + mac_id + "").children().find(".checkFWCurrent").addClass("aimesh_fw_release_note");
-					$("#amas_" + mac_id + "").children().find(".checkFWCurrent").click({"model_name": ui_model_name, "fwver": fwver}, show_current_release_note);
-				}
-				if(support_manual_fw){
-					if(online == "1")
-						$("#amas_" + mac_id + "").children().find(".aimesh_fw_update_offline").click(get_cfg_clientlist[idx], open_AiMesh_node_fw_upgrade);
-					else
-						amesh_offline_flag = true;
-				}
-
-				if(online == 1){
-					if(capability_value & 128){	//revertfw_support
-						if(!revertfw_support){
-							//do nothing for nodes
-						}
-						else{
-							$("#amas_" + mac_id + "").children().find(".aimesh_fw_revert_node").html(gen_AiMesh_revertfw_status( ip, online ));
-						}
-					}
-					if(capability_value & 4096){     //no_fw_manual_support
-						$("#amas_" + mac_id + "").children("#manual_firmware_update").empty();
-					}
-					if(capability_value & 8192){     //live_update_support
-						exist_update++;
-					}
-				}
-
-				have_node = true;
-			}
-		}
-		$("#fw_version_tr").remove();
-		interval_update_AiMesh_fw_status = setInterval(update_AiMesh_fw, 5000);
-
-	}
-
-	if(bwdpi_support){
-		if(dpi_engine_status.DpiEngine == 1)
-			document.getElementById("sig_ver_field").style.display="";
-		else
-			document.getElementById("sig_ver_field").style.display="none";
-			
-		if(sig_ver_ori == "")
-			document.getElementById("sig_ver_word").innerHTML = "1.008";
-		else
-			document.getElementById("sig_ver_word").innerHTML = sig_ver_ori;
-
-		if(sig_update_t == "" || sig_update_t == "0")
-			document.getElementById("sig_update_date").innerHTML = "";
-		else
-			document.getElementById("sig_update_date").innerHTML = "&nbsp;&nbsp;"+transferTimeFormat(sig_update_t*1000);
-	}
-
-	if(cfg_sync_support){
-		if( (cfg_check == "7" && (cfg_upgrade == "1" || cfg_upgrade == "6" || cfg_upgrade == "8")) ||
-			(cfg_check == "0" && cfg_upgrade == "10") ){
-			startDownloading();
-		}
-	}
-	else{
-		if(webs_state_upgrade != "" && webs_state_upgrade != "1"){   //Show firmware is still downloading or fw upgrade loading bar if doing webs_upgrade.sh 
-			startDownloading();
-		}
-	}
-
-	if(no_update_support && exist_update==0){	//no live update in AiMesh
-		$("table").remove("#auto_upgrade_setting");
-		document.getElementById("update_div").style.display = "none";
-		if(document.getElementById("sig_ver_field").style.display=="none"){
-			document.getElementById("fw_tr").style.display = "none";
-		}
-		document.getElementById("linkpage_div").style.display = "none";
-	}
-	else{
-		if((!live_update_support || !HTTPS_support)
-			&& exist_update==0
-		)
-		{
-			$("table").remove("#auto_upgrade_setting");
-			document.getElementById("update_div").style.display = "none";
-			if(document.getElementById("sig_ver_field").style.display=="none"){
-				document.getElementById("fw_tr").style.display = "none";
-			}
-			document.getElementById("linkpage_div").style.display = "";
-			document.getElementById("linkpage").href = helplink;
-		} 
-		else{
-			document.getElementById("update_div").style.display = "";
-			document.getElementById("linkpage_div").style.display = "none";
-
-			if((confirm_show.length > 0 && confirm_show == 1) || nt_flag == "openReleaseNote"){
-				do_show_confirm(webs_state_flag);
-			}
-			else if((confirm_show.length > 0 && confirm_show == 0) || nt_flag == "openReleaseNote"){
-				if(amesh_support && (isSwMode("rt") || isSwMode("ap")) && ameshRouter_support) {
-					var interval = setInterval(function() {
-						if(link_status != undefined) {
-							clearInterval(interval);
-							show_offline_msg(true);
-						}
-					}, 100);
-				}
-				else{
-					do_show_confirm(webs_state_flag);
-				}
-			}
-		}
-
-		if(afwupg_support){
-			hide_upgrade_opt(webs_update_enable_orig);
-			showclock();
-		}
-
-		if(!afwupg_support){
-			$("table").remove("#auto_upgrade_setting");
-		}
-	}
-
-	if(based_modelid == "RT-AC68A"){        //MODELDEP : Spec special fine tune
-		document.getElementById("fw_note2").style.display = "none";
-		document.getElementById("fw_note3").style.display = "none";
-		inputCtrl(document.form.file, 0);
-		inputCtrl(document.form.upload, 0);
-	}
-	else{
-		inputCtrl(document.form.file, 1);
-		inputCtrl(document.form.upload, 1);
-	}
-
-	if(amesh_support && (isSwMode("rt") || isSwMode("ap")) && ameshRouter_support) {
-		$(".aimesh_manual_fw_update_hint").css("display", "block");
-		$("#manually_upgrade_tr").css("display", "none");
-		$("#productid_tr").css("display", "none");
-		document.form.file.onchange = function() {
-			submitForm();
-		}
-	}
-
-	if(based_modelid == "DSL-AC68U"){
-		$("#dsl_ac68u_fwver").show();
-		$("#dsl_ac68u_drvver").show();
-	}
-
-	if(based_modelid == "DSL-N55U" || based_modelid == "DSL-N55U-B"){
-		$("#dsl_n55u_fwver").show();
-		$("#dsl_n55u_ras").show();
-	}
-
-	if(!afwupg_support){
-		$("table").remove("#auto_upgrade_setting");
-	}
-	else{
-		showclock();
-	}
-
-	if(!betaupg_support){
-		$("div").remove("#check_beta_div");
-	}
-
-	if(no_fw_manual_support){	//No manual
-		$("#fw_note3").hide();
-		$("div").remove("#amesh_manual_upload_fw");
-		$("tr").remove("#manually_upgrade_tr");
-		$(".aimesh_manual_fw_update_hint").css("display", "none");
-	}
-
-	if(is_ISP_incompatible)
-	{
-		var tmp_declaration = replace_isp_name("This equipment is authorized by %@ and the firmware will only be available for update online.");	//Untranslated
-		$("#fw_note2").show();
-		$("#fw_note2").html(tmp_declaration);
-	}
-	if(isSupport("is_ax5400_i1"))
-	{
-		$("#fw_note3").show();
-		$("#fw_note3").html("Firmware upgrade is only accessible through Optus server.");	//Untranslated
-	}
-
-	if(gobi_support && (usb_index != -1) && (sim_state != "")){
-		$("#modem_fw_upgrade").css("display", "");
-	}
-
+	// Show U-Boot recovery instructions
+	$("#uboot_recovery_section").show();
 }
 
 function replace_isp_name(_str){
@@ -1699,191 +1414,83 @@ function get_mobile_fw_upgrade_status(){
 		  <div>&nbsp;</div>
 		  <div class="formfonttitle"><#menu5_6#> - <#menu5_6_3#></div>
 		  <div style="margin:10px 0 10px 5px;" class="splitLine"></div>
-		  <div class="formfontdesc"><strong><#FW_note#></strong>
-				<ol>
-					<li><#FW_n0#></li>
-					<li><#FW_n1#></li>
-					<li id="fw_note2"><#FW_n2#>&nbsp;<#FW_n3#></li>
-					<li id="fw_note3"><#FW_desc0#></li>
-					<li id="fw_note5"><#FW_n5#></li>
-				</ol>
-		  </div>
 		  <br>
 
-		<table id="auto_upgrade_setting" width="100%" border="1" align="center" cellpadding="4" cellspacing="0" bordercolor="#6b8fa3" class="FormTable">
-			<thead>
-			<tr>
-				<td colspan="2"><#FW_auto_upgrade#></td>
-			</tr>	
-			</thead>
-			<tr>
-				<th><#FW_auto_upgrade#></th>
-				<td>
-					<div align="center" class="left" style="width:75px; float:left; cursor:pointer;" id="switch_webs_update_enable"></div>
-					<script type="text/javascript">
-					$('#switch_webs_update_enable').iphoneSwitch('<% nvram_get("webs_update_enable"); %>',
-                            function () {
-								const policyStatus = PolicyStatus()
-										.then(data => {
-											if (data.PP == 0 || data.PP_time == "") {
-												const policyModal = new PolicyModalComponent({
-													policy: "PP",
-													policyStatus: data,
-													agreeCallback: () => {
-														hide_upgrade_opt(1);
-														save_update_enable('on');
-													},
-													knowRiskCallback: () => {
-														alert(`<#ASUS_POLICY_Function_Confirm#>`);
-														location.reload();
-													}
-												});
-												policyModal.show();
-												return false;
-											} else {
-												hide_upgrade_opt(1);
-												save_update_enable('on');
-											}
-										});
-							},
-							function () {
-								hide_upgrade_opt(0);
-                                save_update_enable('off');
-                            }
-                    );
-					</script>
-				</td>	
-			</tr>
-			<tr>
-				<th><#FW_auto_time#></th>
-				<td>
-					<select id="webs_update_time_x_hour" name="webs_update_time_x_hour" class="input_option" onchange="save_update_enable();"></select> :
-					<select id="webs_update_time_x_min" name="webs_update_time_x_min" class="input_option" onchange="save_update_enable();"></select>
-					<span id="system_time" class="devicepin" style="color:#FFFFFF;"></span>
-					<br><span id="dstzone" style="display:none;margin-left:5px;color:#FFFFFF;"></span>
-				</td>	
-			</tr>
-
-			<tr>
-				<td colspan="2">
-					<#FW_auto_upgrade_desc#>
-				</td>
-			</tr>
-		</table>
-
-		<table id="secur_stab_setting" width="100%" border="1" align="center" cellpadding="4" cellspacing="0" bordercolor="#6b8fa3" class="FormTable">
-			<thead>
-			<tr>
-				<td colspan="2"><#Secur_Stab_auto_upgrade#></td>
-			</tr>
-			</thead>
-			<tr>
-				<th><#Secur_Stab_auto_upgrade#></th>
-				<td>
-					<div align="center" class="left" style="width:75px; float:left; cursor:pointer;" id="switch_security_update_enable"></div>
-					<script type="text/javascript">
-					$('#switch_security_update_enable').iphoneSwitch(httpApi.securityUpdate.get(),
-						function(){
-                            //on
-							const policyStatus = PolicyStatus()
-									.then(data => {
-										if (data.PP == 0 || data.PP_time == "") {
-											const policyModal = new PolicyModalComponent({
-												policy: "PP",
-												policyStatus: data,
-												agreeCallback: () => {
-													httpApi.securityUpdate.set(1);
-												},
-												knowRiskCallback: () => {
-													alert(`<#ASUS_POLICY_Function_Confirm#>`);
-													location.reload();
-												}
-											});
-											policyModal.show();
-											return false;
-										} else {
-											httpApi.securityUpdate.set(1);
-										}
-									});
-						},
-						function(){
-							//off
-							httpApi.securityUpdate.set(0);
-						}
-					);
-					</script>
-				</td>
-			</tr>
-
-			<tr>
-				<td colspan="2">
-					<#Secur_Stab_auto_upgrade_desc#>
-				</td>
-			</tr>
-		</table>
-
+		<!-- Firmware Version Info (read-only, UBI layout does not support web upgrade) -->
 		<table width="100%" border="1" align="center" cellpadding="4" cellspacing="0" bordercolor="#6b8fa3" class="FormTable">
 			<thead>
-				<tr id="fw_tr">
-					<td colspan="2"><#FW_item2#></td>	
-				</tr>	
-			</thead>	
+				<tr>
+					<td colspan="2"><#FW_item2#></td>
+				</tr>
+			</thead>
 			<tr id="productid_tr">
 				<th><#FW_item1#></th>
 				<td><#Web_Title2#></td>
-			</tr>
-
-			<tr id="dsl_n55u_fwver" style="display:none;">
-				<th><#adsl_fw_ver_itemname#></th>
-				<td><input type="text" class="input_15_table" value="<% nvram_dump("adsl/tc_fw_ver_short.txt",""); %>" readonly="1" autocorrect="off" autocapitalize="off"></td>
-			</tr>
-			<tr id="dsl_n55u_ras" style="display:none;">
-				<th>RAS</th>
-				<td><input type="text" class="input_20_table" value="<% nvram_dump("adsl/tc_ras_ver.txt",""); %>" readonly="1" autocorrect="off" autocapitalize="off"></td>
-			</tr>
-			<tr id="dsl_ac68u_fwver" style="display:none;">
-				<th>DSL <#FW_item2#></th>
-				<td><% nvram_get("dsllog_fwver"); %></td>
-			</tr>
-			<tr id="dsl_ac68u_drvver" style="display:none;">
-				<th><#adsl_fw_ver_itemname#></th>
-				<td><% nvram_get("dsllog_drvver"); %></td>
-			</tr>
-			<tr id="sig_ver_field" style="display:none;">
-				<th><#sig_ver#></th>
-				<td >
-					<div style="height:33px;margin-top:5px;"><span id="sig_ver_word" style="color:#FFFFFF;"></span><span id="sig_update_date"></span></div>
-					<div style="margin-left:200px;margin-top:-38px;">
-						<input type="button" id="sig_check" name="sig_check" class="button_gen" onclick="sig_version_check();" value="<#liveupdate#>">
-					</div>
-					<div>
-						<span id="sig_status" style="display:none"></span>
-						<img id="sig_update_scan" style="display:none;" src="images/InternetScan.gif">
-					</div>
-				</td>
 			</tr>
 			<tr id="fw_version_tr">
 				<th><#FW_item2#></th>
 				<td>
 					<div id="FWString" style="height:33px;margin-top:5px;"></div>
-					<div id="update_div" style="margin-left:200px;margin-top:-38px;display:none;">
-						<input type="button" id="update" name="update" class="button_gen" onclick="detect_update();" value="<#liveupdate#>" />						
-					</div>
-					<div id="check_beta_div"><input type="checkbox" name="check_beta" id="path_beta" onclick="change_beta_path()" value="" <% nvram_match("webs_update_beta", "1", "checked"); %>/><#FW_beta_check#></div>
-					<div id="linkpage_div" class="button_helplink" style="margin-left:200px;margin-top:-38px;display:none;">
-						<a id="linkpage" target="_blank"><div style="padding-top:5px;"><#liveupdate#></div></a>
-					</div>
-					<div id="check_states">
-						<span id="update_states"></span>
-						<img id="update_scan" style="display:none;" src="images/InternetScan.gif" />
-					</div>
 				</td>
 			</tr>
-			<tr id="manually_upgrade_tr">
-				<th><#FW_item5#></th>
-				<td>
-					<input type="file" name="file" class="input" style="color:#FFCC00;*color:#000;width: 194px;">
-					<input type="button" name="upload" class="button_gen" onclick="submitForm()" value="<#CTL_upload#>" />
+		</table>
+
+		<br>
+
+		<!-- U-Boot Recovery Firmware Upgrade Instructions -->
+		<table id="uboot_recovery_section" width="100%" border="1" align="center" cellpadding="4" cellspacing="0" bordercolor="#6b8fa3" class="FormTable" style="display:none;">
+			<thead>
+				<tr>
+					<td colspan="2">
+						<span class="uboot_lang_en">Firmware Upgrade via U-Boot Recovery</span>
+						<span class="uboot_lang_cn">通过 U-Boot Recovery 升级固件</span>
+					</td>
+				</tr>
+			</thead>
+			<tr>
+				<td colspan="2" style="padding:15px;">
+					<div style="line-height:2.0;">
+						<p class="uboot_lang_en"><strong>This device uses Mediatek Stock UBI layout and does not support firmware upgrade through the web interface. Please use U-Boot recovery mode to upgrade firmware.</strong></p>
+						<p class="uboot_lang_cn"><strong>此设备使用 Mediatek Stock UBI 分区布局，不支持通过网页界面升级固件。请通过 U-Boot Recovery 模式升级固件。</strong></p>
+						<hr style="border-color:#6b8fa3;">
+						<p class="uboot_lang_en"><strong>Steps:</strong></p>
+						<p class="uboot_lang_cn"><strong>操作步骤:</strong></p>
+						<ol class="uboot_lang_en">
+							<li>Download the latest firmware <code>.img</code> file and save it to your computer.</li>
+							<li>Power off the router.</li>
+							<li>Press and hold the <strong>RESET</strong> button, then power on the router while continuing to hold RESET for about <strong>10 seconds</strong>.</li>
+							<li>Release the RESET button when the power LED starts flashing (indicating U-Boot recovery mode).</li>
+							<li>Connect your computer to the router's LAN port with an Ethernet cable (DHCP is supported, no need to set static IP).</li>
+							<li>Open a web browser and navigate to <strong>http://192.168.1.1</strong> (U-Boot recovery page).</li>
+							<li>On the U-Boot recovery page, select <strong>asuswrt</strong> layout from the firmware layout dropdown, then choose the firmware <code>.img</code> file and click <strong>Upload/Update</strong>.</li>
+							<li>Wait for the upgrade to complete. The router will reboot automatically.</li>
+							<li>After reboot, access the router at <strong>http://192.168.50.1</strong>.</li>
+						</ol>
+						<ol class="uboot_lang_cn">
+							<li>下载最新固件 <code>.img</code> 文件并保存到电脑。</li>
+							<li>断开路由器电源。</li>
+							<li>按住 <strong>RESET</strong> 按钮不放，接通电源，继续按住 RESET 约 <strong>10 秒</strong>。</li>
+							<li>当电源指示灯开始闪烁时（表示已进入 U-Boot Recovery 模式），松开 RESET 按钮。</li>
+							<li>用网线将电脑连接到路由器的 LAN 口（支持 DHCP 自动获取 IP，无需手动设置）。</li>
+							<li>打开浏览器，访问 <strong>http://192.168.1.1</strong>（U-Boot Recovery 页面）。</li>
+							<li>在 U-Boot Recovery 页面中，固件布局选择 <strong>asuswrt</strong>，然后选择固件 <code>.img</code> 文件，点击 <strong>Upload/Update</strong> 上传升级。</li>
+							<li>等待升级完成，路由器将自动重启。</li>
+							<li>重启后，访问 <strong>http://192.168.50.1</strong> 进入路由器管理页面。</li>
+						</ol>
+						<hr style="border-color:#6b8fa3;">
+						<p class="uboot_lang_en"><strong>Notes:</strong></p>
+						<p class="uboot_lang_cn"><strong>注意事项:</strong></p>
+						<ul class="uboot_lang_en">
+							<li>Do NOT power off the router during the upgrade process.</li>
+							<li>If you are unable to access the U-Boot recovery page, try clearing your browser cache or using a different browser.</li>
+							<li>Make sure only one LAN connection is active between your computer and the router during recovery.</li>
+						</ul>
+						<ul class="uboot_lang_cn">
+							<li>升级过程中请勿断开路由器电源。</li>
+							<li>如果无法访问 U-Boot Recovery 页面，请尝试清除浏览器缓存或更换浏览器。</li>
+							<li>恢复模式下请确保电脑与路由器之间只有一条 LAN 线连接。</li>
+						</ul>
+					</div>
 				</td>
 			</tr>
 		</table>
