@@ -23539,44 +23539,37 @@ FINISH:
 #ifdef RTCONFIG_BWDPI
 static void
 do_dpi_mals_ej(char *url, FILE *stream) {
-	if(dump_dpi_support(INDEX_MALS))
-		do_ej(url, stream);
+	do_ej(url, stream);
 }
 
 static void
 do_dpi_vp_ej(char *url, FILE *stream) {
-	if(dump_dpi_support(INDEX_VP))
-		do_ej(url, stream);
+	do_ej(url, stream);
 }
 
 static void
 do_dpi_cc_ej(char *url, FILE *stream) {
-	if(dump_dpi_support(INDEX_CC))
-		do_ej(url, stream);
+	do_ej(url, stream);
 }
 
 static void
 do_traffic_analyzer_ej(char *url, FILE *stream) {
-	if(dump_dpi_support(INDEX_TRAFFIC_ANALYZER))
-		do_ej(url, stream);
+	do_ej(url, stream);
 }
 
 static void
 do_webs_filter_ej(char *url, FILE *stream) {
-	if(dump_dpi_support(INDEX_WEBS_FILTER))
-		do_ej(url, stream);
+	do_ej(url, stream);
 }
 
 static void
 do_web_history_ej(char *url, FILE *stream) {
-	if(dump_dpi_support(INDEX_WEB_HISTORY))
-		do_ej(url, stream);
+	do_ej(url, stream);
 }
 
 static void
 do_bandwidth_monitor_ej(char *url, FILE *stream) {
-	if(dump_dpi_support(INDEX_BANDWIDTH_MONITOR))
-		do_ej(url, stream);
+	do_ej(url, stream);
 }
 #endif
 
