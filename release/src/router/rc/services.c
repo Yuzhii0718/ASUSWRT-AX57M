@@ -5881,6 +5881,15 @@ void start_asd(void)
 #endif /* RTCONFIG_ASD */
 
 #ifdef RTCONFIG_GEARUPPLUGIN
+/* weak stub: MT7986 prebuilt(private.o) provides a strong exec_gu,
+ * MT7981 prebuilt does not, so this weak symbol acts as fallback
+ */
+int __attribute__((weak)) exec_gu(int enable)
+{
+	(void)enable;
+	return 0;
+}
+
 void stop_gu_service(int status)
 {
 	if (pids("guplugin_monitor.sh"))
