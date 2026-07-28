@@ -2,6 +2,14 @@ include ../common.mak
 include $(SRCBASE)/.config
 include ../.config
 
+ifeq ($(or $(MT7986A),$(MT7986B)),y)
+PREBUILD_DIR=./prebuild-mt7986-ax6000
+else ifeq ($(MT7981),y)
+PREBUILD_DIR=./prebuild-mt7981-ax3000
+else
+PREBUILD_DIR=./prebuild
+endif
+
 CFLAGS += $(if $(RTCONFIG_DEBUG),-g,-Os) -Wall $(EXTRACFLAGS) -fPIC
 #CFLAGS += $(PRIVATE_EXTRACFLAGS)
 CFLAGS += -I. -I$(TOP)/shared -I$(SRCBASE)/include
@@ -170,7 +178,7 @@ endif
 OBJS = shutils.o defaults.o model.o rtstate.o boardapi.o
 OBJS += network_utility.o
 OBJS += misc.o version.o files.o strings.o process.o
-OBJS += bin_sem_asus.o semaphore.o pids.o $(if $(wildcard notify_rc.c),notify_rc.o,prebuild/notify_rc.o)
+OBJS += bin_sem_asus.o semaphore.o pids.o $(if $(wildcard notify_rc.c),notify_rc.o,$(PREBUILD_DIR)/notify_rc.o)
 OBJS += discover.o
 OBJS += base64.o
 OBJS += nvparse.o
@@ -185,10 +193,10 @@ ifeq ($(RTCONFIG_TOR),y)
 OBJS += scripts.o
 endif
 ifeq ($(RTCONFIG_AHS),y)
-OBJS += $(if $(wildcard notify_ahs.c),notify_ahs.o,prebuild/notify_ahs.o)
+OBJS += $(if $(wildcard notify_ahs.c),notify_ahs.o,$(PREBUILD_DIR)/notify_ahs.o)
 endif
 ifeq ($(RTCONFIG_AMAS_WGN),y)
-OBJS += $(if $(wildcard amas_wgn_shared.c),amas_wgn_shared.o,prebuild/amas_wgn_shared.o)
+OBJS += $(if $(wildcard amas_wgn_shared.c),amas_wgn_shared.o,$(PREBUILD_DIR)/amas_wgn_shared.o)
 endif
 ifeq ($(RTCONFIG_RGBLED),y)
 OBJS += $(if $(wildcard aura_rgb.c),aura_rgb.o,prebuild/aura_rgb.o)
@@ -358,7 +366,7 @@ OBJS	+= pwm_led.o
 endif
 
 ifeq ($(RTCONFIG_SAVEJFFS),y)
-OBJS	+= $(if $(wildcard jffs_cfgs.c),jffs_cfgs.o,prebuild/jffs_cfgs.o)
+OBJS	+= $(if $(wildcard jffs_cfgs.c),jffs_cfgs.o,$(PREBUILD_DIR)/jffs_cfgs.o)
 endif
 
 ifeq ($(or $(RTCONFIG_QCA_PLC_UTILS),$(RTCONFIG_QCA_PLC2)),y)
@@ -366,16 +374,16 @@ OBJS	+= $(if $(wildcard plc_utils.c),plc_utils.o,prebuild/plc_utils.o)
 endif
 
 ifeq ($(RTCONFIG_TCODE),y)
-OBJS	+= $(if $(wildcard tcode.c),tcode.o,prebuild/tcode.o)
+OBJS	+= $(if $(wildcard tcode.c),tcode.o,$(PREBUILD_DIR)/tcode.o)
 endif
 
-OBJS	+= $(if $(wildcard shutils_private.c),shutils_private.o,prebuild/shutils_private.o)
+OBJS	+= $(if $(wildcard shutils_private.c),shutils_private.o,$(PREBUILD_DIR)/shutils_private.o)
 
 ifeq ($(RTCONFIG_ISP_CUSTOMIZE),y)
 OBJS	+= $(if $(wildcard customize_shared.c),customize_shared.o,prebuild/customize_shared.o)
 endif
 
-OBJS += $(if $(wildcard spwenc.c), spwenc.o, prebuild/spwenc.o)
+OBJS += $(if $(wildcard spwenc.c), spwenc.o, $(PREBUILD_DIR)/spwenc.o)
 
 ifeq ($(CONFIG_BCMWL5),y)
 ifneq ($(RTCONFIG_DSL_REMOTE)$(HND_ROUTER),y)
@@ -411,9 +419,9 @@ ifeq ($(RTCONFIG_DWB),y)
 ifeq ($(RTCONFIG_BCMBSD),y)
 CFLAGS += -DSMART_CONNECT
 endif
-OBJS += $(if $(wildcard sysdeps/amas/amas_dwb.c),amas_dwb.o,prebuild/amas_dwb.o)
+OBJS += $(if $(wildcard sysdeps/amas/amas_dwb.c),amas_dwb.o,$(PREBUILD_DIR)/amas_dwb.o)
 endif
-OBJS += $(if $(wildcard amas_utils.c),amas_utils.o,prebuild/amas_utils.o)
+OBJS += $(if $(wildcard amas_utils.c),amas_utils.o,$(PREBUILD_DIR)/amas_utils.o)
 ifeq ($(RTCONFIG_AMASDB),y)
 CFLAGS += -DAMASDB
 endif
@@ -511,7 +519,7 @@ OBJS += $(LIBDIR)/libc_nonshared.a
 endif
 
 ifeq ($(or $(RTCONFIG_GEARUPPLUGIN), $(RTCONFIG_UUPLUGIN)), y)
-OBJS += $(if $(wildcard uu_utils.c),uu_utils.o,prebuild/uu_utils.o)
+OBJS += $(if $(wildcard uu_utils.c),uu_utils.o,$(PREBUILD_DIR)/uu_utils.o)
 endif
 
 all: libshared.so libshared.a
@@ -542,28 +550,28 @@ clean:
 	rm -f *.o *.so *.a .*.depend *.prep sysdeps/*.o sysdeps/broadcom/*.o sysdeps/ralink/*.o sysdeps/qtn/*.o
 
 private.o:
-ifneq ($(wildcard ./prebuild/private.o),)
-	@-cp -f ./prebuild/private.o .
+ifneq ($(wildcard $(PREBUILD_DIR)/private.o),)
+	@-cp -f $(PREBUILD_DIR)/private.o .
 endif
 
 sw_auth.o:
 ifeq ($(wildcard $(SRCBASE)/router/sw-hw-auth/*.c),)
-	cp -f $(TOP)/sw-hw-auth/prebuild/sw_auth.o ./
+	cp -f $(TOP)/sw-hw-auth/$(PREBUILD_DIR)/sw_auth.o ./
 endif
 
 hw_auth.o:
 ifeq ($(wildcard $(SRCBASE)/router/sw-hw-auth/*.c),)
-	cp -f $(TOP)/sw-hw-auth/prebuild/hw_auth.o ./
+	cp -f $(TOP)/sw-hw-auth/$(PREBUILD_DIR)/hw_auth.o ./
 endif
 
 nvpriv.o:
-ifneq ($(wildcard ./prebuild/nvpriv.o),)
-	@-cp -f ./prebuild/nvpriv.o .
+ifneq ($(wildcard $(PREBUILD_DIR)/nvpriv.o),)
+	@-cp -f $(PREBUILD_DIR)/nvpriv.o .
 endif
 
 aae_ipc.o:
 ifeq ($(wildcard $(SRCBASE)/router/aaews/*.c),)
-	cp -f $(TOP)/aaews/prebuild/aae_ipc.o ./
+	cp -f $(TOP)/aaews/$(PREBUILD_DIR)/aae_ipc.o ./
 endif
 
 ifeq ($(RTCONFIG_USB),y)
@@ -586,7 +594,7 @@ endif
 	@echo " [shared] CC $@"
 	@$(CC) $(CFLAGS) -o $@ -c $<
 
-prebuild/%.o:
+$(PREBUILD_DIR)/%.o:
 	#nothing to do...
 
 .depend: $(OBJS:%.o=%.c)
