@@ -1,6 +1,14 @@
 
 include ../common.mak
 
+ifeq ($(or $(MT7986A),$(MT7986B)),y)
+PREBUILD_DIR=./prebuild-mt7986-ax6000
+else ifeq ($(MT7981),y)
+PREBUILD_DIR=./prebuild-mt7981-ax3000
+else
+PREBUILD_DIR=./prebuild
+endif
+
 ifeq ($(HND_ROUTER_AX),y)
 ifeq ($(BRCM_CHIP),$(filter $(BRCM_CHIP),4908 4912))
 CFLAGS += -DBCM49XX
@@ -118,7 +126,7 @@ ifeq ($(or $(RTCONFIG_WIFI6E),$(HND_ROUTER_AX_6756),$(RTCONFIG_BCM_502L07P2)),y)
 OBJS_WPS_PBCD := $(if $(wildcard sysdeps/broadcom/wps_pbcd_6e.c),wps_pbcd_6e.o,prebuild/wps_pbcd_6e.o)
 OBJS_WPS_PBCD += $(if $(wildcard sysdeps/broadcom/hostapd_config_6e.c),hostapd_config_6e.o,prebuild/hostapd_config_6e.o)
 ifeq ($(RTCONFIG_AMAS_WGN), y)
-OBJS_WPS_PBCD += $(if $(wildcard amas_wgn.c),amas_wgn.o,prebuild/amas_wgn.o)
+OBJS_WPS_PBCD += $(if $(wildcard amas_wgn.c),amas_wgn.o,$(PREBUILD_DIR)/amas_wgn.o)
 endif
 else
 OBJS_WPS_PBCD := $(if $(wildcard sysdeps/broadcom/wps_pbcd.c),wps_pbcd.o,prebuild/wps_pbcd.o)
@@ -437,11 +445,11 @@ OBJS += $(if $(wildcard sysdeps/lantiq/obd-lantiq.c),obd-lantiq.o,prebuild/obd-l
 endif
 endif
 
-OBJS += $(if $(wildcard private.c),private.o,prebuild/private.o)
+OBJS += $(if $(wildcard private.c),private.o,$(PREBUILD_DIR)/private.o)
 
 # TODO, speedtest
 ifeq ($(RTCONFIG_SPEEDTEST),y)
-OBJS += $(if $(wildcard speedtest.c),speedtest.o,prebuild/speedtest.o)
+OBJS += $(if $(wildcard speedtest.c),speedtest.o,$(PREBUILD_DIR)/speedtest.o)
 endif
 
 OBJS += wanduck.o
@@ -919,7 +927,7 @@ OBJS += $(if $(wildcard sysdeps/qca/lbd-qca.c),lbd-qca.o,prebuild/lbd-qca.o)
 endif
 
 ifeq ($(RTCONFIG_MTK_BSD),y)
-OBJS += $(if $(wildcard sysdeps/ralink/bsd-ralink.c),bsd-ralink.o,prebuild/bsd-ralink.o)
+OBJS += $(if $(wildcard sysdeps/ralink/bsd-ralink.c),bsd-ralink.o,$(PREBUILD_DIR)/bsd-ralink.o)
 endif
 
 
@@ -952,7 +960,7 @@ CFLAGS += -DXD4S
 endif
 
 ifeq ($(RTCONFIG_ISP_CUSTOMIZE),y)
-OBJS += $(if $(wildcard customize_rc.c),customize_rc.o,prebuild/customize_rc.o)
+OBJS += $(if $(wildcard customize_rc.c),customize_rc.o,$(PREBUILD_DIR)/customize_rc.o)
 endif
 
 ifeq ($(RTCONFIG_CONNDIAG),y)
@@ -1048,7 +1056,7 @@ endif
 all: PB rc $(if $(RTCONFIG_BRCM_HOSTAPD), $(WPS_PBCD)) init.prep
 
 PB:
-	[ ! -d prebuild ] || cp prebuild/* ./
+	[ ! -d $(PREBUILD_DIR) ] || cp $(PREBUILD_DIR)/* ./
 
 ifeq ($(RTCONFIG_BRCM_HOSTAPD),y)
 $(WPS_PBCD): $(OBJS_WPS_PBCD)
@@ -1644,15 +1652,15 @@ size: rc
 	mipsel-uclibc-nm --print-size --size-sort rc
 
 # handle prebuilt object here
-ifneq ($(wildcard ./prebuild/dsl_fb.o),)
+ifneq ($(wildcard $(PREBUILD_DIR)/dsl_fb.o),)
 ifeq ($(RTCONFIG_FRS_FEEDBACK),y)
 dsl_fb.o:
-	@-cp -f ./prebuild/dsl_fb.o .
+	@-cp -f $(PREBUILD_DIR)/dsl_fb.o .
 endif
 ifeq ($(RTCONFIG_DSL),y)
 ifeq ($(RTCONFIG_DSL_TCLINUX),y)
 dsl_diag.o:
-	@-cp -f ./prebuild/dsl_diag.o .
+	@-cp -f $(PREBUILD_DIR)/dsl_diag.o .
 endif
 endif
 else
@@ -1668,47 +1676,47 @@ endif
 #endif
 endif
 
-ifneq ($(wildcard ./prebuild/frs_service.o),)
+ifneq ($(wildcard $(PREBUILD_DIR)/frs_service.o),)
 frs_service.o:
-	@-cp -f ./prebuild/frs_service.o .
+	@-cp -f $(PREBUILD_DIR)/frs_service.o .
 endif
 
-ifneq ($(wildcard ./prebuild/bwdpi*.o),)
+ifneq ($(wildcard $(PREBUILD_DIR)/bwdpi*.o),)
 bwdpi.o:
-	@-cp -f ./prebuild/bwdpi.o .
+	@-cp -f $(PREBUILD_DIR)/bwdpi.o .
 bwdpi_check.o:
-	@-cp -f ./prebuild/bwdpi_check.o .
+	@-cp -f $(PREBUILD_DIR)/bwdpi_check.o .
 bwdpi_db_10.o:
-	@-cp -f ./prebuild/bwdpi_db_10.o .
+	@-cp -f $(PREBUILD_DIR)/bwdpi_db_10.o .
 bwdpi_wred_alive.o:
-	@-cp -f ./prebuild/bwdpi_wred_alive.o .
+	@-cp -f $(PREBUILD_DIR)/bwdpi_wred_alive.o .
 endif
 
-ifneq ($(wildcard ./prebuild/nt_mail.o),)
+ifneq ($(wildcard $(PREBUILD_DIR)/nt_mail.o),)
 nt_mail.o:
-	@-cp -f ./prebuild/nt_mail.o .
+	@-cp -f $(PREBUILD_DIR)/nt_mail.o .
 endif
 
 # handle prebuilt object here
 ifeq ($(RTCONFIG_TAGGED_BASED_VLAN),y)
-ifneq ($(wildcard ./prebuild/tagged_based_vlan.o),)
+ifneq ($(wildcard $(PREBUILD_DIR)/tagged_based_vlan.o),)
 tagged_based_vlan.o:
-	@-cp -f ./prebuild/tagged_based_vlan.o .
+	@-cp -f $(PREBUILD_DIR)/tagged_based_vlan.o .
 endif
 endif
 
 ifeq ($(RTCONFIG_AMAS_WGN), y)
-ifneq ($(wildcard ./prebuild/amas_wgn.o),)
+ifneq ($(wildcard $(PREBUILD_DIR)/amas_wgn.o),)
 amas_wgn:
-	@-cp -f ./prebuild/amas_wgn.o .
+	@-cp -f $(PREBUILD_DIR)/amas_wgn.o .
 endif
 endif
 
 # asustest command is for DSL models only, debugging purpose.
 ifeq ($(RTCONFIG_DSL),y)
-ifneq ($(wildcard ./prebuild/asustest.o),)
+ifneq ($(wildcard $(PREBUILD_DIR)/asustest.o),)
 asustest.o:
-	@-cp -f ./prebuild/asustest.o .
+	@-cp -f $(PREBUILD_DIR)/asustest.o .
 else
 asustest.o:asustest.c
 	@echo "compile asustest"
@@ -1718,380 +1726,380 @@ endif
 
 ifeq ($(RTCONFIG_HTTPS),y)
 ifeq ($(or $(RTCONFIG_PUSH_EMAIL),$(RTCONFIG_NOTIFICATION_CENTER)),y)
-ifneq ($(wildcard ./prebuild/pwdec.o),)
+ifneq ($(wildcard $(PREBUILD_DIR)/pwdec.o),)
 pwdec.o:
-	@-cp -f ./prebuild/pwdec.o .
+	@-cp -f $(PREBUILD_DIR)/pwdec.o .
 endif
 endif
 endif
 
 ifeq ($(CONFIG_BCMWL5),y)
-ifneq ($(wildcard ./prebuild/ate-broadcom.o),)
+ifneq ($(wildcard $(PREBUILD_DIR)/ate-broadcom.o),)
 ate-broadcom.o:
-	@-cp -f ./prebuild/ate-broadcom.o .
+	@-cp -f $(PREBUILD_DIR)/ate-broadcom.o .
 endif
-ifneq ($(wildcard ./prebuild/rpmac.o),)
+ifneq ($(wildcard $(PREBUILD_DIR)/rpmac.o),)
 rpmac.o:
-	@-cp -f ./prebuild/rpmac.o .
+	@-cp -f $(PREBUILD_DIR)/rpmac.o .
 endif
-ifneq ($(wildcard ./prebuild/init-broadcom.o),)
+ifneq ($(wildcard $(PREBUILD_DIR)/init-broadcom.o),)
 init-broadcom.o:
-	@-cp -f ./prebuild/init-broadcom.o .
+	@-cp -f $(PREBUILD_DIR)/init-broadcom.o .
 endif
-ifneq ($(wildcard ./prebuild/ate.o),)
+ifneq ($(wildcard $(PREBUILD_DIR)/ate.o),)
 ate.o:
-	@-cp -f ./prebuild/ate.o .
+	@-cp -f $(PREBUILD_DIR)/ate.o .
 endif
 ifeq ($(BUILD_NAME),$(filter $(BUILD_NAME),RT-AC68U RT-AC3200 4G-AC68U GT-AC2900 RT-AX58U TUF-AX3000 RT-AX82U DSL-AX82U GS-AX3000 GS-AX5400))
-ifneq ($(wildcard ./prebuild/cfe.o),)
+ifneq ($(wildcard $(PREBUILD_DIR)/cfe.o),)
 cfe.o:
-	@-cp -f ./prebuild/cfe.o .
+	@-cp -f $(PREBUILD_DIR)/cfe.o .
 endif
 endif
 ifeq ($(RTCONFIG_ADTBW),y)
-ifneq ($(wildcard ./prebuild/adtbw-broadcom.o),)
+ifneq ($(wildcard $(PREBUILD_DIR)/adtbw-broadcom.o),)
 adtbw-broadcom.o:
-	@-cp -f ./prebuild/adtbw-broadcom.o .
+	@-cp -f $(PREBUILD_DIR)/adtbw-broadcom.o .
 endif
 endif
 
 ifeq ($(RTCONFIG_AMAS_ADTBW),y)
-ifneq ($(wildcard ./prebuild/amas_adtbw.o),)
+ifneq ($(wildcard $(PREBUILD_DIR)/amas_adtbw.o),)
 amas_adtbw.o:
-	@-cp -f ./prebuild/amas_adtbw.o .
+	@-cp -f $(PREBUILD_DIR)/amas_adtbw.o .
 endif
 
-ifneq ($(wildcard ./prebuild/amas-adtbw-broadcom.o),)
+ifneq ($(wildcard $(PREBUILD_DIR)/amas-adtbw-broadcom.o),)
 amas-adtbw-broadcom.o:
-	@-cp -f ./prebuild/amas-adtbw-broadcom.o .
+	@-cp -f $(PREBUILD_DIR)/amas-adtbw-broadcom.o .
 endif
 endif
 
 ifeq ($(and $(RTCONFIG_BCMWL6),$(RTCONFIG_PROXYSTA)),y)
-ifneq ($(wildcard ./prebuild/psta_monitor.o),)
+ifneq ($(wildcard $(PREBUILD_DIR)/psta_monitor.o),)
 psta_monitor.o:
-	@-cp -f ./prebuild/psta_monitor.o .
+	@-cp -f $(PREBUILD_DIR)/psta_monitor.o .
 endif
 endif
-ifneq ($(wildcard ./prebuild/broadcom.o),)
+ifneq ($(wildcard $(PREBUILD_DIR)/broadcom.o),)
 broadcom.o:
-	@-cp -f ./prebuild/broadcom.o .
+	@-cp -f $(PREBUILD_DIR)/broadcom.o .
 endif
 ifeq ($(RTCONFIG_AMAS),y)
-ifneq ($(wildcard ./prebuild/obd-broadcom.o),)
+ifneq ($(wildcard $(PREBUILD_DIR)/obd-broadcom.o),)
 obd-broadcom.o:
-	@-cp -f ./prebuild/obd-broadcom.o .
+	@-cp -f $(PREBUILD_DIR)/obd-broadcom.o .
 endif
-ifneq ($(wildcard ./prebuild/amas-ssd-broadcom),)
+ifneq ($(wildcard $(PREBUILD_DIR)/amas-ssd-broadcom),)
 amas-ssd-broadcom:
-	@-cp -f ./prebuild/amas-ssd-broadcom .
+	@-cp -f $(PREBUILD_DIR)/amas-ssd-broadcom .
 endif
-ifneq ($(wildcard ./prebuild/amas-ssd-cd-broadcom),)
+ifneq ($(wildcard $(PREBUILD_DIR)/amas-ssd-cd-broadcom),)
 amas-ssd-cd-broadcom:
-	@-cp -f ./prebuild/amas-ssd-cd-broadcom .
+	@-cp -f $(PREBUILD_DIR)/amas-ssd-cd-broadcom .
 endif
 endif
 endif
 
 ifeq ($(RTCONFIG_RALINK),y)
-ifneq ($(wildcard ./prebuild/ate-ralink.o),)
+ifneq ($(wildcard $(PREBUILD_DIR)/ate-ralink.o),)
 ate-ralink.o:
-	@-cp -f ./prebuild/ate-ralink.o .
+	@-cp -f $(PREBUILD_DIR)/ate-ralink.o .
 endif
-ifneq ($(wildcard ./prebuild/air_monitor.o),)
+ifneq ($(wildcard $(PREBUILD_DIR)/air_monitor.o),)
 air_monitor.o:
-	@-cp -f ./prebuild/air_monitor.o .
+	@-cp -f $(PREBUILD_DIR)/air_monitor.o .
 endif
-ifneq ($(wildcard ./prebuild/ralink.o),)
+ifneq ($(wildcard $(PREBUILD_DIR)/ralink.o),)
 ralink.o:
-	@-cp -f ./prebuild/ralink.o .
+	@-cp -f $(PREBUILD_DIR)/ralink.o .
 endif
-ifneq ($(wildcard ./prebuild/roamast-ralink.o),)
+ifneq ($(wildcard $(PREBUILD_DIR)/roamast-ralink.o),)
 roamast-ralink.o:
-	@-cp -f ./prebuild/roamast-ralink.o .
+	@-cp -f $(PREBUILD_DIR)/roamast-ralink.o .
 endif
 ifeq ($(RTCONFIG_AMAS),y)
-ifneq ($(wildcard ./prebuild/obd-ralink.o),)
+ifneq ($(wildcard $(PREBUILD_DIR)/obd-ralink.o),)
 obd-ralink.o:
-	@-cp -f ./prebuild/obd-ralink.o .
+	@-cp -f $(PREBUILD_DIR)/obd-ralink.o .
 endif
-ifneq ($(wildcard ./prebuild/amas-ssd-ralink),)
+ifneq ($(wildcard $(PREBUILD_DIR)/amas-ssd-ralink),)
 amas-ssd-ralink:
-	@-cp -f ./prebuild/amas-ssd-ralink .
+	@-cp -f $(PREBUILD_DIR)/amas-ssd-ralink .
 endif
 endif
 endif
 
 ifeq ($(RTCONFIG_QCA),y)
-ifneq ($(wildcard ./prebuild/ate-qca.o),)
+ifneq ($(wildcard $(PREBUILD_DIR)/ate-qca.o),)
 ate-qca.o:
-	@-cp -f ./prebuild/ate-qca.o .
+	@-cp -f $(PREBUILD_DIR)/ate-qca.o .
 endif
 ifeq ($(RTCONFIG_AMAS),y)
-ifneq ($(wildcard ./prebuild/obd-qca.o),)
+ifneq ($(wildcard $(PREBUILD_DIR)/obd-qca.o),)
 obd-qca.o:
-	@-cp -f ./prebuild/obd-qca.o .
+	@-cp -f $(PREBUILD_DIR)/obd-qca.o .
 endif
-ifneq ($(wildcard ./prebuild/amas-ssd-qca.o),)
+ifneq ($(wildcard $(PREBUILD_DIR)/amas-ssd-qca.o),)
 amas-ssd-qca:
-	@-cp -f ./prebuild/amas-ssd-qca.o .
+	@-cp -f $(PREBUILD_DIR)/amas-ssd-qca.o .
 endif
-ifneq ($(wildcard ./prebuild/amas-ssd-cd-qca.o),)
+ifneq ($(wildcard $(PREBUILD_DIR)/amas-ssd-cd-qca.o),)
 amas-ssd-cd-qca:
-	@-cp -f ./prebuild/amas-ssd-cd-qca.o .
+	@-cp -f $(PREBUILD_DIR)/amas-ssd-cd-qca.o .
 endif
 endif
 endif
 
 ifeq ($(RTCONFIG_REALTEK),y)
-ifneq ($(wildcard ./prebuild/ate-realtek.o),)
+ifneq ($(wildcard $(PREBUILD_DIR)/ate-realtek.o),)
 ate-realtek.o:
-	@-cp -f ./prebuild/ate-realtek.o .
+	@-cp -f $(PREBUILD_DIR)/ate-realtek.o .
 endif
-ifneq ($(wildcard ./prebuild/realtek.o),)
+ifneq ($(wildcard $(PREBUILD_DIR)/realtek.o),)
 realtek.o:
-	@-cp -f ./prebuild/realtek.o .
+	@-cp -f $(PREBUILD_DIR)/realtek.o .
 endif
-ifneq ($(wildcard ./prebuild/rtk_wifi_drvmib.o),)
+ifneq ($(wildcard $(PREBUILD_DIR)/rtk_wifi_drvmib.o),)
 rtk_wifi_drvmib.o:
-	@-cp -f ./prebuild/rtk_wifi_drvmib.o .
+	@-cp -f $(PREBUILD_DIR)/rtk_wifi_drvmib.o .
 endif
 ifeq ($(RTCONFIG_AMAS),y)
-ifneq ($(wildcard ./prebuild/obd-realtek.o),)
+ifneq ($(wildcard $(PREBUILD_DIR)/obd-realtek.o),)
 obd-realtek.o:
-	@-cp -f ./prebuild/obd-realtek.o .
+	@-cp -f $(PREBUILD_DIR)/obd-realtek.o .
 endif
-ifneq ($(wildcard ./prebuild/amas-ssd-realtek),)
+ifneq ($(wildcard $(PREBUILD_DIR)/amas-ssd-realtek),)
 amas-ssd-realtek:
-	@-cp -f ./prebuild/amas-ssd-realtek .
+	@-cp -f $(PREBUILD_DIR)/amas-ssd-realtek .
 endif
 endif
 endif
 
 ifeq ($(RTCONFIG_TCODE),y)
-ifneq ($(wildcard ./prebuild/tcode_rc.o),)
+ifneq ($(wildcard $(PREBUILD_DIR)/tcode_rc.o),)
 tcode_rc.o:
-	@-cp -f ./prebuild/tcode_rc.o .
+	@-cp -f $(PREBUILD_DIR)/tcode_rc.o .
 endif
 ifeq ($(CONFIG_BCMWL5),y)
-ifneq ($(wildcard ./prebuild/tcode_brcm.o),)
+ifneq ($(wildcard $(PREBUILD_DIR)/tcode_brcm.o),)
 tcode_brcm.o:
-	@-cp -f ./prebuild/tcode_brcm.o .
+	@-cp -f $(PREBUILD_DIR)/tcode_brcm.o .
 endif
 endif
 endif
 
 ifeq ($(RTCONFIG_LACP),y)
-ifneq ($(wildcard ./prebuild/agg_brcm.o),)
+ifneq ($(wildcard $(PREBUILD_DIR)/agg_brcm.o),)
 agg_brcm.o:
-	@-cp -f ./prebuild/agg_brcm.o .
+	@-cp -f $(PREBUILD_DIR)/agg_brcm.o .
 endif
 endif
 
 ifeq ($(and $(CONFIG_BCMWL5),$(RTCONFIG_DUALWAN)),y)
-ifneq ($(wildcard ./prebuild/dualwan.o),)
+ifneq ($(wildcard $(PREBUILD_DIR)/dualwan.o),)
 dualwan.o:
-	@-cp -f ./prebuild/dualwan.o .
+	@-cp -f $(PREBUILD_DIR)/dualwan.o .
 endif
 endif
 
 ifeq ($(RTCONFIG_ALPINE),y)
-ifneq ($(wildcard ./prebuild/init-alpine.o),)
+ifneq ($(wildcard $(PREBUILD_DIR)/init-alpine.o),)
 init-alpine.o:
-	@-cp -f ./prebuild/init-alpine.o .
+	@-cp -f $(PREBUILD_DIR)/init-alpine.o .
 endif
-ifneq ($(wildcard ./prebuild/ate-alpine.o),)
+ifneq ($(wildcard $(PREBUILD_DIR)/ate-alpine.o),)
 ate-alpine.o:
-	@-cp -f ./prebuild/ate-alpine.o .
+	@-cp -f $(PREBUILD_DIR)/ate-alpine.o .
 endif
-ifneq ($(wildcard ./prebuild/alpine.o),)
+ifneq ($(wildcard $(PREBUILD_DIR)/alpine.o),)
 alpine.o:
-	@-cp -f ./prebuild/alpine.o .
+	@-cp -f $(PREBUILD_DIR)/alpine.o .
 endif
-ifneq ($(wildcard ./prebuild/qsr10g.o),)
+ifneq ($(wildcard $(PREBUILD_DIR)/qsr10g.o),)
 qsr10g.o:
-	@-cp -f ./prebuild/qsr10g.o .
+	@-cp -f $(PREBUILD_DIR)/qsr10g.o .
 endif
 endif
 
 ifeq ($(RTCONFIG_LANTIQ),y)
-ifneq ($(wildcard ./prebuild/lantiq.o),)
+ifneq ($(wildcard $(PREBUILD_DIR)/lantiq.o),)
 lantiq.o:
-	@-cp -f ./prebuild/lantiq.o .
+	@-cp -f $(PREBUILD_DIR)/lantiq.o .
 endif
-ifneq ($(wildcard ./prebuild/ate-lantiq.o),)
+ifneq ($(wildcard $(PREBUILD_DIR)/ate-lantiq.o),)
 ate-lantiq.o:
-	@-cp -f ./prebuild/ate-lantiq.o .
+	@-cp -f $(PREBUILD_DIR)/ate-lantiq.o .
 endif
-ifneq ($(wildcard ./prebuild/init-lantiq.o),)
+ifneq ($(wildcard $(PREBUILD_DIR)/init-lantiq.o),)
 init-lantiq.o:
-	@-cp -f ./prebuild/init-lantiq.o .
+	@-cp -f $(PREBUILD_DIR)/init-lantiq.o .
 endif
-ifneq ($(wildcard ./prebuild/lantiq-wave.o),)
+ifneq ($(wildcard $(PREBUILD_DIR)/lantiq-wave.o),)
 lantiq-wave.o:
-	@-cp -f ./prebuild/lantiq-wave.o .
+	@-cp -f $(PREBUILD_DIR)/lantiq-wave.o .
 endif
-ifneq ($(wildcard ./prebuild/client.o),)
+ifneq ($(wildcard $(PREBUILD_DIR)/client.o),)
 client.o:
-	@-cp -f ./prebuild/client.o .
+	@-cp -f $(PREBUILD_DIR)/client.o .
 endif
 ifeq ($(RTCONFIG_AMAS),y)
-ifneq ($(wildcard ./prebuild/obd-lantiq.o),)
+ifneq ($(wildcard $(PREBUILD_DIR)/obd-lantiq.o),)
 obd-lantiq.o:
-	@-cp -f ./prebuild/obd-lantiq.o .
+	@-cp -f $(PREBUILD_DIR)/obd-lantiq.o .
 endif
-ifneq ($(wildcard ./prebuild/amas-ssd-lantiq),)
+ifneq ($(wildcard $(PREBUILD_DIR)/amas-ssd-lantiq),)
 amas-ssd-lantiq:
-	@-cp -f ./prebuild/amas-ssd-lantiq .
+	@-cp -f $(PREBUILD_DIR)/amas-ssd-lantiq .
 endif
 endif
 endif
 
 ifneq ($(or $(RTCONFIG_QCA),$(RTCONFIG_RALINK)),y)
-ifneq ($(wildcard ./prebuild/nbr_monitor.o),)
+ifneq ($(wildcard $(PREBUILD_DIR)/nbr_monitor.o),)
 nbr_monitor.o:
-	@-cp -f ./prebuild/nbr_monitor.o .
+	@-cp -f $(PREBUILD_DIR)/nbr_monitor.o .
 endif
 endif
 
-ifneq ($(wildcard ./prebuild/obd.o),)
+ifneq ($(wildcard $(PREBUILD_DIR)/obd.o),)
 obd.o:
-	@-cp -f ./prebuild/obd.o .
+	@-cp -f $(PREBUILD_DIR)/obd.o .
 endif
 
-ifneq ($(wildcard ./prebuild/obd_eth.o),)
+ifneq ($(wildcard $(PREBUILD_DIR)/obd_eth.o),)
 obd_eth.o:
-	@-cp -f ./prebuild/obd_eth.o .
+	@-cp -f $(PREBUILD_DIR)/obd_eth.o .
 endif
 
-ifneq ($(wildcard ./prebuild/obd_monitor.o),)
+ifneq ($(wildcard $(PREBUILD_DIR)/obd_monitor.o),)
 obd_monitor.o:
-	@-cp -f ./prebuild/obd_monitor.o .
+	@-cp -f $(PREBUILD_DIR)/obd_monitor.o .
 endif
 
 ifeq ($(RTCONFIG_NEW_USER_LOW_RSSI),y)
-ifneq ($(wildcard ./prebuild/roamast.o),)
+ifneq ($(wildcard $(PREBUILD_DIR)/roamast.o),)
 roamast.o:
-	@-cp -f ./prebuild/roamast.o .
+	@-cp -f $(PREBUILD_DIR)/roamast.o .
 endif
-ifneq ($(wildcard ./prebuild/roamast-broadcom.o),)
+ifneq ($(wildcard $(PREBUILD_DIR)/roamast-broadcom.o),)
 roamast-broadcom.o:
-	@-cp -f ./prebuild/roamast-broadcom.o .
+	@-cp -f $(PREBUILD_DIR)/roamast-broadcom.o .
 endif
-ifneq ($(wildcard ./prebuild/roamast-lantiq.o),)
+ifneq ($(wildcard $(PREBUILD_DIR)/roamast-lantiq.o),)
 roamast-lantiq.o:
-	@-cp -f ./prebuild/roamast-lantiq.o .
+	@-cp -f $(PREBUILD_DIR)/roamast-lantiq.o .
 endif
 endif
 
 ifeq ($(RTCONFIG_TR069),y)
-ifneq ($(wildcard ./prebuild/tr069.o),)
+ifneq ($(wildcard $(PREBUILD_DIR)/tr069.o),)
 tr069.o:
-	@-cp -f ./prebuild/tr069.o .
+	@-cp -f $(PREBUILD_DIR)/tr069.o .
 endif
 endif
 
-ifneq ($(wildcard ./prebuild/dhcpc_vc_query.o),)
+ifneq ($(wildcard $(PREBUILD_DIR)/dhcpc_vc_query.o),)
 dhcpc_vc_query.o:
-	@-cp -f ./prebuild/dhcpc_vc_query.o .
+	@-cp -f $(PREBUILD_DIR)/dhcpc_vc_query.o .
 endif
 
 ifeq ($(RTCONFIG_AMAS),y)
-ifneq ($(wildcard ./prebuild/amas_lanctrl.o),)
+ifneq ($(wildcard $(PREBUILD_DIR)/amas_lanctrl.o),)
 amas_lanctrl.o:
-	@-cp -f ./prebuild/amas_lanctrl.o .
+	@-cp -f $(PREBUILD_DIR)/amas_lanctrl.o .
 endif
-ifneq ($(wildcard ./prebuild/amas_bhctrl.o),)
+ifneq ($(wildcard $(PREBUILD_DIR)/amas_bhctrl.o),)
 amas_bhctrl.o:
-	@-cp -f ./prebuild/amas_bhctrl.o .
+	@-cp -f $(PREBUILD_DIR)/amas_bhctrl.o .
 endif
-ifneq ($(wildcard ./prebuild/amas_wlcconnect.o),)
+ifneq ($(wildcard $(PREBUILD_DIR)/amas_wlcconnect.o),)
 amas_wlcconnect.o:
-	@-cp -f ./prebuild/amas_wlcconnect.o .
+	@-cp -f $(PREBUILD_DIR)/amas_wlcconnect.o .
 endif
-ifneq ($(wildcard ./prebuild/amas_lib.o),)
+ifneq ($(wildcard $(PREBUILD_DIR)/amas_lib.o),)
 amas_lib.o:
-	@-cp -f ./prebuild/amas_lib.o .
+	@-cp -f $(PREBUILD_DIR)/amas_lib.o .
 endif
 ifeq ($(RTCONFIG_BHCOST_OPT),y)
-ifneq ($(wildcard ./prebuild/amas_status.o),)
+ifneq ($(wildcard $(PREBUILD_DIR)/amas_status.o),)
 amas_status.o:
-	@-cp -f ./prebuild/amas_status.o .
+	@-cp -f $(PREBUILD_DIR)/amas_status.o .
 endif
-ifneq ($(wildcard ./prebuild/amas_misc.o),)
+ifneq ($(wildcard $(PREBUILD_DIR)/amas_misc.o),)
 amas_misc.o:
-	@-cp -f ./prebuild/amas_misc.o .
+	@-cp -f $(PREBUILD_DIR)/amas_misc.o .
 endif
-ifneq ($(wildcard ./prebuild/amas_ssd.o),)
+ifneq ($(wildcard $(PREBUILD_DIR)/amas_ssd.o),)
 amas_ssd.o:
-	@-cp -f ./prebuild/amas_ssd.o .
+	@-cp -f $(PREBUILD_DIR)/amas_ssd.o .
 endif
-ifneq ($(wildcard ./prebuild/amas_ssd_cd.o),)
+ifneq ($(wildcard $(PREBUILD_DIR)/amas_ssd_cd.o),)
 amas_ssd_cd.o:
-	@-cp -f ./prebuild/amas_ssd_cd.o .
+	@-cp -f $(PREBUILD_DIR)/amas_ssd_cd.o .
 endif
-ifneq ($(wildcard ./prebuild/amas_ipc.o),)
+ifneq ($(wildcard $(PREBUILD_DIR)/amas_ipc.o),)
 amas_ipc.o:
-	@-cp -f ./prebuild/amas_ipc.o .
+	@-cp -f $(PREBUILD_DIR)/amas_ipc.o .
 endif
 endif
 ifeq ($(RTCONFIG_PRELINK),y)
-ifneq ($(wildcard ./prebuild/amas_prelink.o),)
+ifneq ($(wildcard $(PREBUILD_DIR)/amas_prelink.o),)
 amas_prelink.o:
-	@-cp -f ./prebuild/amas_prelink.o .
+	@-cp -f $(PREBUILD_DIR)/amas_prelink.o .
 endif
 endif
 endif
 
 ifeq ($(BUILD_NAME),$(filter $(BUILD_NAME),RT-AX82U RT-AX82U_V2 GS-AX3000 GS-AX5400 TUF-AX5400 GT-AX11000_PRO GT-AXE16000 GT-AX6000 GT10))
-ifneq ($(wildcard ./prebuild/ledg.o),)
+ifneq ($(wildcard $(PREBUILD_DIR)/ledg.o),)
 ledg.o:
-	@-cp -f ./prebuild/ledg.o .
+	@-cp -f $(PREBUILD_DIR)/ledg.o .
 endif
 endif
 ifeq ($(RTCONFIG_SOFTWIRE46),y)
-ifneq ($(wildcard ./prebuild/s46comm.o),)
+ifneq ($(wildcard $(PREBUILD_DIR)/s46comm.o),)
 s46comm.o:
-	@-cp -f ./prebuild/s46comm.o .
+	@-cp -f $(PREBUILD_DIR)/s46comm.o .
 endif
-ifneq ($(wildcard ./prebuild/v6plusd.o),)
+ifneq ($(wildcard $(PREBUILD_DIR)/v6plusd.o),)
 v6plusd.o:
-	@-cp -f ./prebuild/v6plusd.o .
+	@-cp -f $(PREBUILD_DIR)/v6plusd.o .
 endif
-ifneq ($(wildcard ./prebuild/ocnvcd.o),)
+ifneq ($(wildcard $(PREBUILD_DIR)/ocnvcd.o),)
 ocnvcd.o:
-	@-cp -f ./prebuild/ocnvcd.o .
+	@-cp -f $(PREBUILD_DIR)/ocnvcd.o .
 endif
-ifneq ($(wildcard ./prebuild/dslited.o),)
+ifneq ($(wildcard $(PREBUILD_DIR)/dslited.o),)
 dslited.o:
-	@-cp -f ./prebuild/dslited.o .
+	@-cp -f $(PREBUILD_DIR)/dslited.o .
 endif
 endif
 ifeq ($(RTCONFIG_TPVPN),y)
-ifneq ($(wildcard ./prebuild/tpvpn.o),)
+ifneq ($(wildcard $(PREBUILD_DIR)/tpvpn.o),)
 tpvpn.o:
-	@-cp -f ./prebuild/tpvpn.o .
+	@-cp -f $(PREBUILD_DIR)/tpvpn.o .
 endif
 endif
 
 ifeq ($(RTCONFIG_SCHED_DAEMON),y)
-ifneq ($(wildcard ./prebuild/sched_daemon.o),)
+ifneq ($(wildcard $(PREBUILD_DIR)/sched_daemon.o),)
 sched_daemon.o.o:
-	@-cp -f ./prebuild/sched_daemon.o .
+	@-cp -f $(PREBUILD_DIR)/sched_daemon.o .
 endif
 endif
 
 ifeq ($(GTAX6000),y)
-ifneq ($(wildcard ./prebuild/antled.o),)
+ifneq ($(wildcard $(PREBUILD_DIR)/antled.o),)
 broadcom.o:
-	@-cp -f ./prebuild/antled.o .
+	@-cp -f $(PREBUILD_DIR)/antled.o .
 endif
 endif
 
 ifeq ($(RTCONFIG_IG_SITE2SITE),y)
-ifneq ($(wildcard ./prebuild/ig_s2s_client.o),)
+ifneq ($(wildcard $(PREBUILD_DIR)/ig_s2s_client.o),)
 ig_s2s_client.o:
-	@-cp -f ./prebuild/ig_s2s_client.o .
+	@-cp -f $(PREBUILD_DIR)/ig_s2s_client.o .
 endif
 endif
 
@@ -2120,7 +2128,7 @@ libconn_diag.so:
 		if [ -f $${f}.c ] ; then \
 			$(CC) $(CFLAGS) -fPIC -c $${f}.c; \
 		else \
-			cp -f ./prebuild/$${f}.o .; \
+			cp -f $(PREBUILD_DIR)/$${f}.o .; \
 		fi \
 	done
 ifeq ($(HND_ROUTER_AX),y)
