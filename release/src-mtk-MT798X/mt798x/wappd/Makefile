@@ -1,0 +1,20 @@
+STAGING_DIR=$(STAGEDIR)
+PKG_BUILD_DIR=$(shell pwd)/prebuilt
+
+
+all:
+	install $(STAGING_DIR)/usr/lib/libkvcutil.so $(PKG_BUILD_DIR)/libkvcutil.so
+
+install: all
+	install -D prebuilt/wapp $(INSTALLDIR)/bin/wapp
+	install -D prebuilt/wappctrl $(INSTALLDIR)/bin/wappctrl
+	$(STRIP) $(INSTALLDIR)/bin/wapp
+	$(STRIP) $(INSTALLDIR)/bin/wappctrl
+	chmod 0500 $(INSTALLDIR)/bin/wapp
+	chmod 0500 $(INSTALLDIR)/bin/wappctrl
+	install -D -m 755 prebuilt/libkvcutil.so  $(INSTALLDIR)/usr/lib/libkvcutil.so
+	$(STRIP) $(INSTALLDIR)/usr/lib/libkvcutil.so
+	@cd $(INSTALLDIR)/usr/lib && ln -sf libkvcutil.so libkvcutil.so.1
+
+clean:
+	-rm -f $(EXEC) *.elf *.gdb *.o
