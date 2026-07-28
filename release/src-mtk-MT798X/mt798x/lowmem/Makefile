@@ -1,7 +1,12 @@
 LINUX_VERSION=$(LINUX_KERNEL)
 INSTALLKMODDIR:=$(INSTALLDIR)/lib/modules/$(LINUX_VERSION)
 
-PBBINS=$(wildcard prebuilt/*)
+ifeq ($(MT7981),y)
+PBBINS=$(wildcard prebuilt-mt7981-ax3000/*)
+else
+PBBINS=
+endif
+
 LIBS=$(filter %.so,$(PBBINS))
 KMOD=$(filter %.ko,$(PBBINS))
 EXEC=$(filter-out $(LIBS) $(KMOD),$(PBBINS))
