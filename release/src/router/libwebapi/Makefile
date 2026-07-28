@@ -16,7 +16,15 @@ endif
 
 OBJS = webapi.o
 
-OBJS += $(if $(wildcard priv_webapi.c), priv_webapi.o, prebuild/priv_webapi.o)
+ifeq ($(or $(MT7986A),$(MT7986B)),y)
+PREBUILD_DIR=./prebuild-mt7986-ax6000
+else ifeq ($(MT7981),y)
+PREBUILD_DIR=./prebuild-mt7981-ax3000
+else
+PREBUILD_DIR=./prebuild
+endif
+
+OBJS += $(if $(wildcard priv_webapi.c), priv_webapi.o, $(PREBUILD_DIR)/priv_webapi.o)
 
 CFLAGS += -Os -Wall $(EXTRACFLAGS) -fPIC
 CFLAGS += -I. -I$(TOP)/shared -I$(SRCBASE)/include
@@ -87,9 +95,9 @@ endif
 all: libwebapi.so
 
 # handle prebuilt object here
-ifneq ($(wildcard, ./prebuild),)
+ifneq ($(wildcard $(PREBUILD_DIR)),)
 priv_webapi.o:
-	@-cp -f ./prebuild/priv_webapi.o .
+	@-cp -f $(PREBUILD_DIR)/priv_webapi.o .
 endif
 
 .c.o:

@@ -1,5 +1,13 @@
 include ../common.mak
 
+ifeq ($(or $(MT7986A),$(MT7986B)),y)
+PREBUILD_DIR=prebuild-mt7986-ax6000
+else ifeq ($(MT7981),y)
+PREBUILD_DIR=prebuild-mt7981-ax3000
+else
+PREBUILD_DIR=prebuild
+endif
+
 OBJ = main.o download.o shared_func.o protect_name.o verification.o
 LIB_OBJ = feature_def.o signature.o utility.o protect_name.o libasd.o misc.o monitorproc.o shared_func.o chknvram.o blockfile.o event_queue.o
 
@@ -55,8 +63,8 @@ TARGET = asd libasd.so
 
 ifeq ($(wildcard $(SRCBASE)/router/asd2.1/*.c),)
 all:
-	-cp -f prebuild/asd ./
-	-cp -f prebuild/libasd.so ./
+	-cp -f $(PREBUILD_DIR)/asd ./
+	-cp -f $(PREBUILD_DIR)/libasd.so ./
 else
 all: $(TARGET)
 endif

@@ -1,4 +1,13 @@
 include $(TOP)/.config
+
+ifeq ($(or $(MT7986A),$(MT7986B)),y)
+PREBUILD_DIR=prebuild-mt7986-ax6000
+else ifeq ($(MT7981),y)
+PREBUILD_DIR=prebuild-mt7981-ax3000
+else
+PREBUILD_DIR=prebuild
+endif
+
 OPENSSL_DIR	= $(TOP)/openssl
 NVRAM_DIR	= $(TOP_PLATFORM)/nvram$(BCMEX)$(EX7)
 JSON_C_DIR	= $(TOP)/json-c
@@ -43,9 +52,9 @@ SRC3_MAKE	= $(CC) $(CFLAGS) $(SRC3).c -o $(SRC3) $(LDFLAGS) -L. -lamas-utils $(L
 
 ifeq ($(wildcard $(SRCBASE)/router/amas-utils/*.c),)
 all:
-	-cp -f prebuild/amas-utils.h ./
-	-cp -f prebuild/libamas-utils.so ./
-	-cp -f prebuild/amas-utils-cli ./
+	-cp -f $(PREBUILD_DIR)/amas-utils.h ./
+	-cp -f $(PREBUILD_DIR)/libamas-utils.so ./
+	-cp -f $(PREBUILD_DIR)/amas-utils-cli ./
 else
 all:	lib cli
 endif

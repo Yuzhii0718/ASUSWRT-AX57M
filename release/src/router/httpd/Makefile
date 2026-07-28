@@ -157,15 +157,23 @@ ifeq ($(and $(HND_ROUTER),$(RTCONFIG_VISUALIZATION)),y)
 OBJS += vis_gui.o
 endif
 
+ifeq ($(or $(MT7986A),$(MT7986B)),y)
+PREBUILD_DIR=./prebuild-mt7986-ax6000
+else ifeq ($(MT7981),y)
+PREBUILD_DIR=./prebuild-mt7981-ax3000
+else
+PREBUILD_DIR=./prebuild
+endif
+
 ifeq ($(RTCONFIG_HTTPS),y)
-OBJS += $(if $(wildcard pwenc.c), pwenc.o, prebuild/pwenc.o)
+OBJS += $(if $(wildcard pwenc.c), pwenc.o, $(PREBUILD_DIR)/pwenc.o)
 endif
 
 ifeq ($(RTCONFIG_CAPTCHA),y)
 OBJS += libcaptcha.o
 endif
 
-OBJS += $(if $(wildcard web_hook.c), web_hook.o, prebuild/web_hook.o)
+OBJS += $(if $(wildcard web_hook.c), web_hook.o, $(PREBUILD_DIR)/web_hook.o)
 
 LIBS = -L$(TOP_PLATFORM)/nvram${BCMEX}$(EX7) -lnvram -L$(TOP)/shared -lshared
 ifeq ($(RTCONFIG_BCM_502L07P2),y)
@@ -362,13 +370,13 @@ size: httpd
 	mipsel-uclibc-nm --print-size --size-sort httpd
 
 # handle prebuilt object here
-ifneq ($(wildcard, ./prebuild),)
+ifneq ($(wildcard $(PREBUILD_DIR)),)
 ifeq ($(RTCONFIG_HTTPS),y)
 pwenc.o:
-	@-cp -f ./prebuild/pwenc.o .
+	@-cp -f $(PREBUILD_DIR)/pwenc.o .
 endif
 web_hook.o:
-	@-cp -f ./prebuild/web_hook.o .
+	@-cp -f $(PREBUILD_DIR)/web_hook.o .
 endif
 
 %.o: %.c .%.depend

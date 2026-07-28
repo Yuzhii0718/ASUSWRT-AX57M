@@ -20,9 +20,17 @@ INSTALL = install
 
 OBJS = openvpn_config.o openvpn_control.o openvpn_utils.o openvpn_options.o
 
-ifneq ($(wildcard ./prebuild/libvpn.so),)
+ifeq ($(or $(MT7986A),$(MT7986B)),y)
+PREBUILD_DIR=./prebuild-mt7986-ax6000
+else ifeq ($(MT7981),y)
+PREBUILD_DIR=./prebuild-mt7981-ax3000
+else
+PREBUILD_DIR=./prebuild
+endif
+
+ifneq ($(wildcard $(PREBUILD_DIR)/libvpn.so),)
 all:
-	cp -f ./prebuild/libvpn.so .
+	cp -f $(PREBUILD_DIR)/libvpn.so .
 else
 all: libvpn.so
 
@@ -44,7 +52,7 @@ clean:
 	@echo " [libvpn] CC $@"
 	@$(CC) $(CFLAGS) -o $@ -c $<
 
-%.o: prebuild/%.o
+%.o: $(PREBUILD_DIR)/%.o
 	@echo " [libvpn] cp $@"
 	@cp -f $< $@
 

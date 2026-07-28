@@ -96,10 +96,14 @@ endif
 
 vpath %.c $(TOP)/bwdpi_source/src/tdts_udb_sample
 
+ifndef PREBUILD_DIR
+PREBUILD_DIR := prebuild
+endif
+
 ifeq ($(wildcard $(SRCBASE)/router/bwdpi_source/asus/*.c),)
 all:
-	-cp -f prebuild/libbwdpi.so libbwdpi.so
-	-cp -f prebuild/hwinfo hwinfo
+	-cp -f $(PREBUILD_DIR)/libbwdpi.so libbwdpi.so
+	-cp -f $(PREBUILD_DIR)/hwinfo hwinfo
 else
 all: hwinfo libbwdpi.so dpi_support.prep
 endif

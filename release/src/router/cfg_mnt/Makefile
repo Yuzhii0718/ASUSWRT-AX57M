@@ -222,12 +222,20 @@ CFLAGS += -DPLC_STATUS
 endif
 
 
+ifeq ($(or $(MT7986A),$(MT7986B)),y)
+PREBUILD_DIR=./prebuild-mt7986-ax6000
+else ifeq ($(MT7981),y)
+PREBUILD_DIR=./prebuild-mt7981-ax3000
+else
+PREBUILD_DIR=./prebuild
+endif
+
 ifeq ($(wildcard $(SRCBASE)/router/cfg_mnt/*.c),)
 all:
-	-cp -f prebuild/cfg_server cfg_server
-	-cp -f prebuild/cfg_client cfg_client
-	-cp -f prebuild/cfg_reportstatus cfg_reportstatus
-	-cp -f prebuild/libcfgmnt.so libcfgmnt.so
+	-cp -f $(PREBUILD_DIR)/cfg_server cfg_server
+	-cp -f $(PREBUILD_DIR)/cfg_client cfg_client
+	-cp -f $(PREBUILD_DIR)/cfg_reportstatus cfg_reportstatus
+	-cp -f $(PREBUILD_DIR)/libcfgmnt.so libcfgmnt.so
 else
 all: libcfgmnt.so cfg_server cfg_client cfg_reportstatus
 endif

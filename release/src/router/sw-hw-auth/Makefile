@@ -37,8 +37,21 @@ endif
 
 OBJS = sw_auth.o hw_auth.o
 
+ifeq ($(or $(MT7986A),$(MT7986B)),y)
+PREBUILD_DIR=./prebuild-mt7986-ax6000
+else ifeq ($(MT7981),y)
+PREBUILD_DIR=./prebuild-mt7981-ax3000
+else
+PREBUILD_DIR=./prebuild
+endif
+
 # $(TARGET) and $(TOOL) is for debug only, don't enable it
+ifeq ($(wildcard ./*.c),)
+all:
+	-cp -f $(PREBUILD_DIR)/*.o .
+else
 all :
+endif
 
 $(AUTHLIB): $(OBJS)
 	@echo "[sw-hw-auth] $(AUTHLIB)"

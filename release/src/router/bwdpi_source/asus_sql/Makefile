@@ -77,10 +77,14 @@ ifeq ($(RTCONFIG_BCMARM),y)
 vpath %.c $(SRCBASE)/shared
 endif
 
+ifndef PREBUILD_DIR
+PREBUILD_DIR := prebuild
+endif
+
 ifeq ($(wildcard $(SRCBASE)/router/bwdpi_source/asus_sql/*.c),)
 all:
-	-cp -f prebuild/bwdpi_sqlite bwdpi_sqlite
-	-cp -f prebuild/libbwdpi_sql.so libbwdpi_sql.so
+	-cp -f $(PREBUILD_DIR)/bwdpi_sqlite bwdpi_sqlite
+	-cp -f $(PREBUILD_DIR)/libbwdpi_sql.so libbwdpi_sql.so
 else
 all: bwdpi_sqlite libbwdpi_sql.so
 endif

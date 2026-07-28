@@ -1,5 +1,13 @@
 include ${TOP}/common.mak
 
+ifeq ($(or $(MT7986A),$(MT7986B)),y)
+PREBUILD_DIR=./prebuild-mt7986-ax6000
+else ifeq ($(MT7981),y)
+PREBUILD_DIR=./prebuild-mt7981-ax3000
+else
+PREBUILD_DIR=./prebuild
+endif
+
 CFLAGS += -Wall -O $(if $(RTCONFIG_DEBUG),-g)
 
 ifeq ($(RTCONFIG_BCMARM),y)
@@ -46,9 +54,9 @@ endif
 
 OBJS = utility.o ahs.o
 
-ifneq ($(wildcard ./prebuild),)
+ifneq ($(wildcard $(PREBUILD_DIR)),)
 all:
-	@-cp -f ./prebuild/ahs .
+	@-cp -f $(PREBUILD_DIR)/ahs .
 else
 all: ahs
 endif

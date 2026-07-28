@@ -1,6 +1,14 @@
 include ../common.mak
 
-ifeq ($(wildcard $(TOP)/bwdpi_source/prebuild/*),)
+ifeq ($(or $(MT7986A),$(MT7986B)),y)
+PREBUILD_DIR=prebuild-mt7986-ax6000
+else ifeq ($(MT7981),y)
+PREBUILD_DIR=prebuild-mt7981-ax3000
+else
+PREBUILD_DIR=prebuild
+endif
+
+ifeq ($(wildcard $(TOP)/bwdpi_source/$(PREBUILD_DIR)/*),)
 
 ifeq ($(RTCONFIG_LIBASUSLOG),y)
 CFLAGS += -I$(TOP)/libasuslog
@@ -157,7 +165,7 @@ else
 endif
 endif
 endif
-else  # ($(wildcard $(TOP)/bwdpi_source/prebuild/*),)
+else  # ($(wildcard $(TOP)/bwdpi_source/$(PREBUILD_DIR)/*),)
 pre_build:
 ifeq ($(RTCONFIG_SOC_IPQ8064),y)
 	@cp include/tdts/sysdeps/ipq806x-tmcfg.h include/tdts/tmcfg.h -f                     # ipq806x
@@ -247,21 +255,21 @@ else
 endif
 endif
 endif
-endif # ($(wildcard $(TOP)/bwdpi_source/prebuild/*),)
+endif # ($(wildcard $(TOP)/bwdpi_source/$(PREBUILD_DIR)/*),)
 
 asus_build:
-	@cd asus/ && $(MAKE)
+	@cd asus/ && $(MAKE) PREBUILD_DIR=$(PREBUILD_DIR)
 
 asus_sql_build:
-	@cd asus_sql/ && $(MAKE)
+	@cd asus_sql/ && $(MAKE) PREBUILD_DIR=$(PREBUILD_DIR)
 
 all: pre_build asus_build asus_sql_build
 
-ifeq ($(wildcard $(TOP)/bwdpi_source/prebuild/*),)
+ifeq ($(wildcard $(TOP)/bwdpi_source/$(PREBUILD_DIR)/*),)
 install: all
 	# asus function here
-	@cd asus/ && $(MAKE) install
-	@cd asus_sql/ && $(MAKE) install
+	@cd asus/ && $(MAKE) install PREBUILD_DIR=$(PREBUILD_DIR)
+	@cd asus_sql/ && $(MAKE) install PREBUILD_DIR=$(PREBUILD_DIR)
 	# [INSTALL] PREPARE bwdpi_source/RC_INDEP/
 	@rm -rf RC_INDEP
 	@mkdir RC_INDEP
@@ -376,11 +384,11 @@ endif
 else
 install:
 	# asus function here
-	@cd asus/ && $(MAKE) install
-	@cd asus_sql/ && $(MAKE) install
+	@cd asus/ && $(MAKE) install PREBUILD_DIR=$(PREBUILD_DIR)
+	@cd asus_sql/ && $(MAKE) install PREBUILD_DIR=$(PREBUILD_DIR)
 	# [INSTALL] prebuild into RC_INDEP
 	-@mkdir RC_INDEP
-	-@cp -f prebuild/* RC_INDEP/
+	-@cp -f $(PREBUILD_DIR)/* RC_INDEP/
 ifeq ($(HND_ROUTER),y)
 	@echo "start to install bwdpi_source into 94908HND"
 	@install -d $(INSTALLDIR)/usr/bwdpi/
@@ -401,7 +409,7 @@ ifeq ($(HND_ROUTER),y)
 endif
 endif
 
-ifeq ($(wildcard $(TOP)/bwdpi_source/prebuild/*),)
+ifeq ($(wildcard $(TOP)/bwdpi_source/$(PREBUILD_DIR)/*),)
 clean:
 	# asus function here
 	@cd asus && $(MAKE) clean

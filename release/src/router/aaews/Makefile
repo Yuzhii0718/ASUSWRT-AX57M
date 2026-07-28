@@ -4,6 +4,14 @@ DOG=mastiff
 
 include ../common.mak
 
+ifeq ($(or $(MT7986A),$(MT7986B)),y)
+PREBUILD_DIR=prebuild-mt7986-ax6000
+else ifeq ($(MT7981),y)
+PREBUILD_DIR=prebuild-mt7981-ax3000
+else
+PREBUILD_DIR=prebuild
+endif
+
 CURL_DIR=$(TOP)/curl-7.21.7
 XML2_DIR=$(TOP)/libxml2
 OPENSSL_DIR=$(TOP)/openssl
@@ -35,8 +43,8 @@ WSLIB_OBJS := $(WS_SOURCES:%.c=$(OUTPUT)/%.o)
 
 ifeq ($(wildcard $(TOP)/aaews/*.c),)
 all:
-	-cp -f $(TOP)/aaews/prebuild/aaews aaews
-	-cp -f $(TOP)/aaews/prebuild/mastiff mastiff
+	-cp -f $(TOP)/aaews/$(PREBUILD_DIR)/aaews aaews
+	-cp -f $(TOP)/aaews/$(PREBUILD_DIR)/mastiff mastiff
 else
 all: $(WSLIB) $(TARGET)
 endif
@@ -121,7 +129,7 @@ endif
 
 ifeq ($(wildcard $(TOP)/aaews/*.c),)
 $(DOG):
-	-cp -f $(TOP)/aaews/prebuild/mastiff mastiff
+	-cp -f $(TOP)/aaews/$(PREBUILD_DIR)/mastiff mastiff
 else
 $(DOG): $(DOG).o nat_nvram.o aae_ipc_handler.o ws_caller.o nw_util.o natapi.o $(WSLIB_OBJS) info_report.o
 	$(CC) -fPIC $(CFLAGS) $(LDFLAGS) $(LIBS) $(ROUTER_LDFLAGS) $(ROUTER_LIBS) -o $@ $^ 
@@ -131,7 +139,7 @@ aicam:$(TARGET)
 
 ifeq ($(wildcard $(TOP)/aaews/*.c),)
 router:
-	-cp -f $(TOP)/aaews/prebuild/aaews aaews
+	-cp -f $(TOP)/aaews/$(PREBUILD_DIR)/aaews aaews
 else
 router: $(WSLIB) $(TARGET) $(DOG)
 endif

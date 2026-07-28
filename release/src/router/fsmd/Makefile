@@ -23,9 +23,17 @@ ifeq ($(RTCONFIG_BCM_502L07P2),y)
 LDFLAGS += -L$(TOP_PLATFORM)/ethctl_lib -lethctl
 endif
 
-ifneq ($(wildcard ./prebuild),)
+ifeq ($(or $(MT7986A),$(MT7986B)),y)
+PREBUILD_DIR=./prebuild-mt7986-ax6000
+else ifeq ($(MT7981),y)
+PREBUILD_DIR=./prebuild-mt7981-ax3000
+else
+PREBUILD_DIR=./prebuild
+endif
+
+ifneq ($(wildcard $(PREBUILD_DIR)),)
 all:
-	@-cp -f ./prebuild/* .
+	@-cp -f $(PREBUILD_DIR)/* .
 else
 all: fsmd req_fsm
 endif

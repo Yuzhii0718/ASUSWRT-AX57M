@@ -19,9 +19,17 @@ INSTALL = install
 
 OBJS = letsencrypt_config.o letsencrypt_control.o letsencrypt_utils.o
 
+ifeq ($(or $(MT7986A),$(MT7986B)),y)
+PREBUILD_DIR=./prebuild-mt7986-ax6000
+else ifeq ($(MT7981),y)
+PREBUILD_DIR=./prebuild-mt7981-ax3000
+else
+PREBUILD_DIR=./prebuild
+endif
+
 ifeq ($(wildcard ./*.c),)
 all:
-	cp -f ./prebuild/libletsencrypt.so .
+	cp -f $(PREBUILD_DIR)/libletsencrypt.so .
 else
 all: libletsencrypt.so
 endif
@@ -44,7 +52,7 @@ clean:
 	@echo " [libletsencrypt] CC $@"
 	@$(CC) $(CFLAGS) -o $@ -c $<
 
-%.o: prebuild/%.o
+%.o: $(PREBUILD_DIR)/%.o
 	@echo " [libletsencrypt] cp $@"
 	@cp -f $< $@
 
