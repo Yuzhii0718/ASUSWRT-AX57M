@@ -178,6 +178,7 @@ CFLAGS += -I$(TOP)/bwdpi_source/include
 CFLAGS += -I$(TOP)/httpd/
 CFLAGS += -I$(TOP)/util-linux/include
 LDFLAGS += -L$(TOP)/bwdpi_source/asus -lbwdpi
+LDFLAGS += -L$(TOP)/bwdpi_source/asus_sql -lbwdpi_sql
 endif
 
 ifeq ($(RTCONFIG_SPEEDTEST),y)
