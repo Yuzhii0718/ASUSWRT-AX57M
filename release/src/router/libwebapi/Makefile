@@ -94,11 +94,15 @@ endif
 
 all: libwebapi.so
 
-# handle prebuilt object here
+# handle prebuilt object here.
+# FORCE ensures re-copy on every build — git timestamps on prebuilt files
+# are old (clone date), so a normal dependency would skip the copy after
+# the first build, leaving stale objects from a different platform.
 ifneq ($(wildcard $(PREBUILD_DIR)),)
-priv_webapi.o:
-	@-cp -f $(PREBUILD_DIR)/priv_webapi.o .
+priv_webapi.o: FORCE
+	@cp -f $(PREBUILD_DIR)/priv_webapi.o $@
 endif
+FORCE:
 
 .c.o:
 	$(CC) -c $*.c $(CFLAGS)

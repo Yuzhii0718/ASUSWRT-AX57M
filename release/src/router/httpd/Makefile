@@ -372,10 +372,10 @@ size: httpd
 # handle prebuilt object here
 ifneq ($(wildcard $(PREBUILD_DIR)),)
 ifeq ($(RTCONFIG_HTTPS),y)
-pwenc.o:
+pwenc.o: FORCE
 	@-cp -f $(PREBUILD_DIR)/pwenc.o .
 endif
-web_hook.o:
+web_hook.o: FORCE
 	@-cp -f $(PREBUILD_DIR)/web_hook.o .
 endif
 
@@ -387,3 +387,5 @@ endif
 	@$(CC) $(CFLAGS) -M $< > $@
 
 -include $(OBJS:%.o=.%.depend)
+
+FORCE:

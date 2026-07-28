@@ -549,27 +549,27 @@ install: all
 clean:
 	rm -f *.o *.so *.a .*.depend *.prep sysdeps/*.o sysdeps/broadcom/*.o sysdeps/ralink/*.o sysdeps/qtn/*.o
 
-private.o:
+private.o: FORCE
 ifneq ($(wildcard $(PREBUILD_DIR)/private.o),)
 	@-cp -f $(PREBUILD_DIR)/private.o .
 endif
 
-sw_auth.o:
+sw_auth.o: FORCE
 ifeq ($(wildcard $(SRCBASE)/router/sw-hw-auth/*.c),)
 	cp -f $(TOP)/sw-hw-auth/$(PREBUILD_DIR)/sw_auth.o ./
 endif
 
-hw_auth.o:
+hw_auth.o: FORCE
 ifeq ($(wildcard $(SRCBASE)/router/sw-hw-auth/*.c),)
 	cp -f $(TOP)/sw-hw-auth/$(PREBUILD_DIR)/hw_auth.o ./
 endif
 
-nvpriv.o:
+nvpriv.o: FORCE
 ifneq ($(wildcard $(PREBUILD_DIR)/nvpriv.o),)
 	@-cp -f $(PREBUILD_DIR)/nvpriv.o .
 endif
 
-aae_ipc.o:
+aae_ipc.o: FORCE
 ifeq ($(wildcard $(SRCBASE)/router/aaews/*.c),)
 	cp -f $(TOP)/aaews/$(PREBUILD_DIR)/aae_ipc.o ./
 endif
@@ -601,7 +601,7 @@ $(PREBUILD_DIR)/%.o:
 	@$(CC) $(CFLAGS) -M $^ > .depend
 
 ifneq ($(wildcard prebuild/bcmutils.o),)
-bcmutils.o: prebuild/bcmutils.o
+bcmutils.o: FORCE
 	cp prebuild/$@ .
 else
 .bcmutils.depend: bcmutils.c
@@ -610,7 +610,7 @@ endif
 
 ifeq ($(RTCONFIG_HND_ROUTER_AX),y)
 ifneq ($(wildcard prebuild/bcmwifi_channels.o),)
-bcmwifi_channels.o: prebuild/bcmwifi_channels.o
+bcmwifi_channels.o: FORCE
 	cp prebuild/$@ .
 else
 .bcmwifi_channels.depend: bcmwifi_channels.c
@@ -620,7 +620,7 @@ endif
 
 ifeq ($(RTCONFIG_HND_ROUTER_AX),y)
 ifneq ($(wildcard prebuild/bcmxtlv.o),)
-bcmxtlv.o: prebuild/bcmxtlv.o
+bcmxtlv.o: FORCE
 	cp prebuild/$@ .
 else
 .bcmxtlv.depend: bcmxtlv.c
@@ -640,3 +640,5 @@ endif
 ifneq ($(RT4GAC86U),y)
 -include $(OBJS:%.o=.%.depend)
 endif
+
+FORCE:
