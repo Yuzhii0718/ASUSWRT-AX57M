@@ -49,7 +49,10 @@ export WTOOL_SUFFIX=
 endif
 export ENTRYADDR := $(LOADADDR)
 
-ifeq ($(or $(MT7986A),$(MT7986B)),y)
+ifeq ($(MT7975_AX6000),y)
+include $(SRCBASE)/plat-opt-7986.mak
+export SDKCONFIG=$(PLATFORM_ROUTER)/sdk.config-7975$(M32_SUFFIX)
+else ifeq ($(or $(MT7986A),$(MT7986B)),y)
 include $(SRCBASE)/plat-opt-7986.mak
 export SDKCONFIG=$(PLATFORM_ROUTER)/sdk.config-7986$(M32_SUFFIX)
 else ifeq ($(MT7981),y)
