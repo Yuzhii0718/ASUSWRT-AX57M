@@ -1306,7 +1306,7 @@ enum led_id {
 	LED_5G_GREEN,
 	LED_5G_ORANGE,
 	LED_5G_RED,
-#elif defined(RTCONFIG_ZENWIFI_RGBLED) || defined(RTCONFIG_AURA_RGBLED)
+#elif defined(RTCONFIG_ZENWIFI_RGBLED) || defined(RTCONFIG_AURA_RGBLED) || defined(RTCONFIG_GPIOX3_RGBLED)
 	LED_BLUE,
 	LED_GREEN,
 	LED_RED,
@@ -4297,7 +4297,7 @@ static inline int add_gpio_to_bled(__attribute__ ((unused)) const char *main_led
 
 #endif	/* RTCONFIG_BLINK_LED */
 
-#if defined(RTCONFIG_ZENWIFI_RGBLED)
+#if defined(RTCONFIG_ZENWIFI_RGBLED) || defined(RTCONFIG_GPIOX3_RGBLED)
 /* color */
 #define RGBLED_OFF			0x0
 #define RGBLED_BLED			0x1

@@ -252,7 +252,7 @@ function initial(){
 			$("#wans_lanport2 option[value='4']").remove();
 	}
 
-	if(based_modelid == "RT-AC95U" || based_modelid == "RT-AX95Q" || based_modelid == "XT8PRO" || based_modelid == "XT8_V2" || based_modelid == "RT-AXE95Q" || based_modelid == "ET8PRO" || based_modelid == "ET8_V2" || based_modelid == "RT-AX82_XD6" || based_modelid == "RT-AX82_XD6S" || based_modelid == "XD4S" || based_modelid == "RT-AX53U" || based_modelid == "RT-AX59U" || based_modelid == "XD6_V2" || based_modelid == "RT-AX52" || based_modelid == "RT-8103AX"){
+	if(based_modelid == "RT-AC95U" || based_modelid == "RT-AX95Q" || based_modelid == "XT8PRO" || based_modelid == "XT8_V2" || based_modelid == "RT-AXE95Q" || based_modelid == "ET8PRO" || based_modelid == "ET8_V2" || based_modelid == "RT-AX82_XD6" || based_modelid == "RT-AX82_XD6S" || based_modelid == "XD4S" || based_modelid == "RT-AX53U" || based_modelid == "RT-AX59U" || based_modelid == "XD6_V2" || based_modelid == "RT-AX52" || based_modelid == "RT-8103AX" || based_modelid == "TUF-X60NEW"){
 		if($("#wans_lanport1 option[value='4']").length > 0)
 			$("#wans_lanport1 option[value='4']").remove();
 
@@ -1062,7 +1062,7 @@ function addWANOption(obj, wanscapItem){
 					wanscapName = "10G base-T";
 				else if(wanscapName == "SFP+")
 					wanscapName = "10G SFP+";
-			} else if (based_modelid == "TUF-AX4200" || based_modelid == "TUF-AX6000") {
+			} else if (based_modelid == "TUF-AX4200" || based_modelid == "TUF-AX6000" || based_modelid == "TUF-X60NEW") {
 				if (wanscapName == "WAN")
 					wanscapName = "2.5G WAN";
 			}

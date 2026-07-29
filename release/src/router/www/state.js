@@ -710,7 +710,7 @@ function wanAggr_p2_name(wanports_bond){
 			if(based_modelid == "XT12"){
 				if(p2_port == "3")
 					p2_port_str = "2.5G/1G LAN";
-			} else if (based_modelid == "TUF-AX4200" || based_modelid == "TUF-AX6000") {
+			} else if (based_modelid == "TUF-AX4200" || based_modelid == "TUF-AX6000" || based_modelid == "TUF-X60NEW") {
 				if (p2_port == 5)
 					p2_port_str = "2.5G LAN";
 			}

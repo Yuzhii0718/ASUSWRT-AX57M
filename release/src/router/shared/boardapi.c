@@ -207,7 +207,7 @@ static const struct led_btn_table_s {
 	{ "led_5g_green_gpio",	&led_gpio_table[LED_5G_GREEN] },
 	{ "led_5g_orange_gpio",	&led_gpio_table[LED_5G_ORANGE] },
 	{ "led_5g_red_gpio",	&led_gpio_table[LED_5G_RED] },
-#elif defined(RTCONFIG_ZENWIFI_RGBLED) || defined(RTCONFIG_AURA_RGBLED)
+#elif defined(RTCONFIG_ZENWIFI_RGBLED) || defined(RTCONFIG_AURA_RGBLED) || defined(RTCONFIG_GPIOX3_RGBLED)
 	{ "led_blue_gpio",	&led_gpio_table[LED_BLUE] },
 	{ "led_green_gpio",	&led_gpio_table[LED_GREEN] },
 	{ "led_red_gpio",	&led_gpio_table[LED_RED] },
@@ -470,7 +470,7 @@ int init_gpio(void)
 		, "led_pwr_red_gpio"
 		, "led_2g_green_gpio", "led_2g_orange_gpio", "led_2g_red_gpio"
 		, "led_5g_green_gpio", "led_5g_orange_gpio", "led_5g_red_gpio"
-#elif defined(RTCONFIG_ZENWIFI_RGBLED) || defined(RTCONFIG_AURA_RGBLED)
+#elif defined(RTCONFIG_ZENWIFI_RGBLED) || defined(RTCONFIG_AURA_RGBLED) || defined(RTCONFIG_GPIOX3_RGBLED)
 		, "led_blue_gpio", "led_green_gpio", "led_red_gpio"
 		, "led_white_gpio"
 #endif

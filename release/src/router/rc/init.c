@@ -2190,7 +2190,7 @@ static void post_restore_defaults(void)
 	}
 #endif
 }
-#elif defined(TUFAX4200) || defined(TUFAX6000)
+#elif defined(TUFAX4200) || defined(TUFAX6000) || defined(TUFX60NEW)
 static void post_restore_defaults(void)
 {
 	nvram_set("led_wan_last_state", "0");
@@ -2511,7 +2511,7 @@ restore_defaults(void)
 	nvram_unset("httpds6_reload_cert");
 #endif
 
-#if defined(RTCONFIG_SOC_IPQ8074) || defined(RTCONFIG_SOC_IPQ60XX) || defined(TUFAX4200) || defined(TUFAX6000) || defined(RTAX52) || defined(RTAX57M) || defined(RT8103AX)
+#if defined(RTCONFIG_SOC_IPQ8074) || defined(RTCONFIG_SOC_IPQ60XX) || defined(TUFAX4200) || defined(TUFAX6000) || defined(TUFX60NEW) || defined(RTAX52) || defined(RTAX57M) || defined(RT8103AX)
 	/* Keep below statment at end of restore_defaults(). */
 	post_restore_defaults();
 #endif
@@ -3700,7 +3700,7 @@ int init_nvram(void)
 #if defined(RTCONFIG_SWITCH_MT7986_MT7531)
 	char *dw_lan = NULL;
 #endif
-#if defined(RTCONFIG_WANPORT2) || defined(PLAX56_XP4) || defined(TUFAX4200) || defined(TUFAX6000) || defined(RTAX59U) || defined(RTAX52) || defined(RTAX57M) || defined(RT8103AX)
+#if defined(RTCONFIG_WANPORT2) || defined(PLAX56_XP4) || defined(TUFAX4200) || defined(TUFAX6000) || defined(TUFX60NEW) || defined(RTAX59U) || defined(RTAX52) || defined(RTAX57M) || defined(RT8103AX)
 	char *wan0, *wan1 __attribute__((unused)), *lan_1, *lan_2, lan_ifs[IFNAMSIZ * 4];
 #endif
 #ifdef RTCONFIG_GMAC3
@@ -5746,6 +5746,82 @@ int init_nvram(void)
 #endif
 		break;
 #endif	/* TUFAX6000 */
+
+#if defined(TUFX60NEW)
+	case MODEL_TUFX60NEW:
+		nvram_set("boardflags", "0x100");
+		nvram_set("lan_ifname", "br0");
+
+		wan0 = "eth1";
+		lan_1 = "lan3 lan2";	/* LAN ifaces could be enslaved to LAN LACP. */
+		lan_2 = "lan1";		/* Rest of LAN ifaces. */
+#if defined(RTCONFIG_LACP)
+		if (nvram_match("lacp_enabled", "1")) {
+			nvram_set("bond0_ifnames", lan_1);
+			lan_1 = "bond0";
+		} else {
+			nvram_unset("bond0_ifnames");
+		}
+#endif	/* RTCONFIG_LACP */
+
+		wan_ifaces[WAN_IFACE_ID] = wan0;
+		wl_ifaces[WL_2G_BAND] = "ra0";
+		wl_ifaces[WL_5G_BAND] = "rax0";
+		snprintf(lan_ifs, sizeof(lan_ifs), "%s %s", lan_1, lan_2);
+
+		/* Remove iface from lan_ifs if it's LANx as WAN. */
+		if (sw_mode == SW_MODE_ROUTER
+		 && (get_wans_dualwan() & WANSCAP_LAN)
+		 && nvram_get_int("wans_lanport") >= 1
+		 && nvram_get_int("wans_lanport") <= 3
+		) {
+			static char dw_lan_buf[IFNAMSIZ] = "";
+
+			snprintf(dw_lan_buf, sizeof(dw_lan_buf), "%s", bs_port_id_to_iface(nvram_get_int("wans_lanport")));
+			dw_lan = dw_lan_buf;
+			remove_word(lan_ifs, dw_lan_buf);
+		}
+
+#if defined(RTCONFIG_AMAS) || defined(RTCONFIG_CFGSYNC)
+		nvram_set("wired_ifnames", lan_ifs);
+#endif
+		set_basic_ifname_vars(wan_ifaces, lan_ifs, wl_ifaces, "usb", NULL, NULL, dw_lan, 0);
+		// button
+		nvram_set_int("btn_wps_gpio", 15|GPIO_ACTIVE_LOW);
+		nvram_set_int("btn_rst_gpio", 14|GPIO_ACTIVE_LOW);
+		// led
+		nvram_set_int("led_red_gpio", 10|GPIO_ACTIVE_LOW);
+		nvram_set_int("led_green_gpio", 9|GPIO_ACTIVE_LOW);
+		nvram_set_int("led_blue_gpio", 11|GPIO_ACTIVE_LOW);
+		nvram_set_int("led_pwr_gpio", 11|GPIO_ACTIVE_LOW);
+		nvram_set_int("led_wps_gpio", 11|GPIO_ACTIVE_LOW);
+		// bled
+		config_netdev_bled("led_wan_gpio", "eth1");
+
+		nvram_set("ct_max", "300000"); // force
+
+		if (nvram_get("wl_mssid") && nvram_match("wl_mssid", "1"))
+			add_rc_support("mssid");
+		add_rc_support("2.4G 5G update");
+		add_rc_support("rawifi");
+		add_rc_support("switchctrl");
+		add_rc_support("manual_stb");
+		add_rc_support("11AC");
+		add_rc_support("11AX mbo ofdma");
+		add_rc_support("wpa3");
+		//either txpower or singlesku supports rc.
+		add_rc_support("pwrctrl");
+		add_rc_support("smart_connect");
+		add_rc_support("wbmenu");
+		// for GUI display
+		add_rc_support("tuf");
+		// the following values is model dep. so move it from default.c to here
+		nvram_set("wl0_HT_TxStream", "2");
+		nvram_set("wl0_HT_RxStream", "2");
+		nvram_set("wl1_HT_TxStream", "2");
+		nvram_set("wl1_HT_RxStream", "2");
+		break;
+#endif	/* TUFX60NEW */
 
 #if defined(RTAX59U)
 	case MODEL_RTAX59U:

@@ -1316,6 +1316,8 @@ else ifeq ($(CONFIG_TUFAX4200),y)
 dtb-y += mt7986a-TUF-AX4200.dtb
 else ifeq ($(CONFIG_TUFAX6000),y)
 dtb-y += mt7986a-TUF-AX6000.dtb
+else ifeq ($(CONFIG_TUFX60NEW),y)
+dtb-y += mt7986a-TUF-X60NEW.dtb
 else ifeq ($(CONFIG_RTAX59U),y)
 dtb-y += mt7986a-RT-AX59U.dtb
 else ifeq ($(CONFIG_PRTAX57_GO),y)

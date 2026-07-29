@@ -381,7 +381,7 @@ void config_hwctl_led(void)
 	eval("switch", "phy", "cl45", "w", "0", "0x1f", "0x25",    "0x0");	/* LED0, none of any events blink */
 	eval("switch", "phy", "cl45", "w", "0", "0x1f", "0x26", "0xc007");	/* Enable LED1, active high, link 10M/100M/1G ON */
 	eval("switch", "phy", "cl45", "w", "0", "0x1f", "0x27",   "0x3f");	/* LED1, blinks on 10M/100M/1G TX/RX activity */
-#elif defined(RTAX52) || defined(RT8103AX)
+#elif defined(RTAX52) || defined(RT8103AX) || defined(TUFX60NEW)
 	set_mt7531_led(nvram_match("AllLED", "0") ? 0 : 1, 0);
 #endif
 }
@@ -489,7 +489,7 @@ int lan_port_bit_shift = 1;
 #if defined(RTCONFIG_PORT2_DEVICE)
 #if defined(XD4S) 
 int lan_port_bit_shift = 3; //in order to specify LAN1 of switch_port_mapping
-#elif defined(PRTAX57_GO) || defined(RT8103AX)
+#elif defined(PRTAX57_GO) || defined(RT8103AX) || defined(TUFX60NEW)
 int lan_port_bit_shift = 0; 
 #else
 //TBD
@@ -1417,6 +1417,8 @@ void wan_force_link_sp(int unit)
 
 #if defined(TUFAX4200) || defined(TUFAX6000)
 	port = 6;
+#elif defined(TUFX60NEW)
+	port = 1;
 #elif defined(RTAX59U) || defined(RTAX52) || defined(RT8103AX)
 	port = 1;
 #elif defined(RTAX57M)
@@ -1989,7 +1991,7 @@ void set_et0macaddr(char *macaddr2, char *macaddr)
 #endif
 }
 
-#if defined(TUFAX4200) || defined(TUFAX6000) // EEPROM runtime fix
+#if defined(TUFAX4200) || defined(TUFAX6000) || defined(TUFX60NEW) // EEPROM runtime fix
 void eeprom_check(void);
 void boot_version_ck(void);
 #endif
@@ -2112,7 +2114,7 @@ void init_syspara(void)
 	memset(value_str, 0, sizeof(value_str));
 #endif
 
-#if defined(TUFAX4200) || defined(TUFAX6000)
+#if defined(TUFAX4200) || defined(TUFAX6000) || defined(TUFX60NEW)
 	boot_version_ck();
 #endif
 
@@ -2187,6 +2189,38 @@ void init_syspara(void)
 	}
 #endif
 #if defined(RTCONFIG_MT798X)
+#if defined(TUFX60NEW)
+	/* TUF-X60NEW: MAC is stored as ASCII in product_info partition ("ethaddr=<mac>"),
+	 * not in Factory at 0x4/0x24/0x2A offsets.
+	 *    rf_base  = product_info ethaddr
+	 *    lan_hwaddr = rf_base + 2
+	 *    wan_hwaddr = rf_base + 3  (lan + 1)
+	 *    2.4G/5G RF MACs derive from rf_base */
+	{
+		static unsigned char prod_buf[4096];
+		char *ethaddr_pos;
+		int a, b, c, d, e, f;
+
+		if (MTDPartitionRead("product_info", prod_buf, 0, sizeof(prod_buf)) >= 0) {
+			ethaddr_pos = strstr((char *)prod_buf, "ethaddr=");
+			if (ethaddr_pos &&
+			    sscanf(ethaddr_pos + 8, "%2x:%2x:%2x:%2x:%2x:%2x",
+				   &a, &b, &c, &d, &e, &f) == 6) {
+				/* rf_base stored as product_info ethaddr */
+				f += 2;
+				snprintf(macaddr, sizeof(macaddr),
+					 "%02X:%02X:%02X:%02X:%02X:%02X",
+					 a, b, c, d, e, f);
+				f++;	/* wan_hwaddr = lan_hwaddr + 1 */
+				snprintf(macaddr2, sizeof(macaddr2),
+					 "%02X:%02X:%02X:%02X:%02X:%02X",
+					 a, b, c, d, e, f);
+				_dprintf("[TUF-X60NEW] rf_base=%02X:%02X:%02X:%02X:%02X:%02X lan_hwaddr=%s wan_hwaddr=%s\n",
+					 a, b, c, d, e, f - 3, macaddr, macaddr2);
+			}
+		}
+	}
+#else
 	/* MT798X: Factory stores distinct MACs per interface:
 	 *   0x4  = WiFi base MAC (already read into macaddr/macaddr2 above)
 	 *   0x2A = LAN MAC (OFFSET_MAC_GMAC0)
@@ -2197,6 +2231,7 @@ void init_syspara(void)
 		ether_etoa(buffer, macaddr);
 	if (FRead(dst, OFFSET_MAC_GMAC1, bytes) >= 0 && buffer[0] != 0xff)
 		ether_etoa(buffer, macaddr2);
+#endif	/* TUFX60NEW */
 #endif
 #ifdef RTAC51U	/* FIX EU2CN */
 	_dprintf("# MAC_2G: %s\n", macaddr2);

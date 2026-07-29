@@ -796,7 +796,7 @@ struct nvram_tuple router_defaults[] = {
 #endif
 #endif
 #if defined(RTCONFIG_RALINK)
-#if defined(RTCONFIG_BW160M) || defined(RTAX52) || defined(RTAX57M) || defined(RT8103AX) /* RT-AX52/RT-AX57M/RT-8103AX 160M depends on odmpid */
+#if defined(RTCONFIG_BW160M) || defined(RTAX52) || defined(RTAX57M) || defined(RT8103AX) || defined(TUFX60NEW) /* RT-AX52/RT-AX57M/RT-8103AX/TUF-X60NEW 160M depends on odmpid */
 	{ "wl_bw_160", "0", CKN_STR1, CKN_TYPE_DEFAULT, CKN_ACC_LEVEL_DEFAULT, CKN_ENC_DEFAULT, 0 },	/* bandwidth 160MHz support */
 #endif
 #endif

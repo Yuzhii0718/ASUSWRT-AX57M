@@ -26,6 +26,12 @@ UBOOT_IMG = u-boot_nand_YYYYMMDD_v$(UBOOT_VER)_rt-8103ax_ddr3.img
 HW_ID = A
 HW_VER = 1.0
 FLASH_SIZE = 0x8000000
+else ifeq ($(BUILD_NAME),TUF-X60NEW)
+UBOOT_VER = 1005
+UBOOT_IMG = u-boot_nand_YYYYMMDD_v$(UBOOT_VER)_tuf-x60new_ddr3.img
+HW_ID = A
+HW_VER = 1.0
+FLASH_SIZE = 0x8000000
 else
 $(error Define your model!!)
 endif

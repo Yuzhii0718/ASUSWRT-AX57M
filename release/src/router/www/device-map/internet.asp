@@ -157,7 +157,7 @@ function initial(){
 				sec_if = "10G base-T";
 			else if(sec_if == "SFP+")
 				sec_if = "10G SFP+";
-		} else if (based_modelid == "TUF-AX4200" || based_modelid == "TUF-AX6000") {
+		} else if (based_modelid == "TUF-AX4200" || based_modelid == "TUF-AX6000" || based_modelid == "TUF-X60NEW") {
 			if (pri_if == "WAN")
 				pri_if = "2.5G WAN";
 			if (sec_if == "WAN")

@@ -35981,7 +35981,7 @@ static const struct ate_id_alias_s wan_aliases[] = {
 	{ "W0", "WAN" },
 	{ "W1", "10G base-T" },
 	{ "W2", "10G SFP+" },
-#elif defined(TUFAX4200) || defined(TUFAX6000)
+#elif defined(TUFAX4200) || defined(TUFAX6000) || defined(TUFX60NEW)
 	{ "W0", "2.5G WAN" },
 #endif
 	{ NULL, NULL }

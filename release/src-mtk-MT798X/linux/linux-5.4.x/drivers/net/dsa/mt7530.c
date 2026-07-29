@@ -1091,7 +1091,7 @@ mt753x_cpu_port_enable(struct dsa_switch *ds, int port)
 	mt7530_rmw(priv, MT7530_MFC, UNM_FFP_MASK, UNM_FFP(BIT(port)|BIT(5)|BIT(4)));
 #elif defined(CONFIG_RTAX59U) // workaround for switch WAN port, port 1 => port 5 is connected to CPU eth1
 	mt7530_rmw(priv, MT7530_MFC, UNM_FFP_MASK, UNM_FFP(BIT(port)|BIT(5)|BIT(1)));
-#elif defined(CONFIG_RTAX52) || defined(CONFIG_RT8103AX) // workaround for switch WAN port, port 3 => port 5 is connected to CPU eth1
+#elif defined(CONFIG_RTAX52) || defined(CONFIG_RT8103AX) || defined(CONFIG_TUFX60NEW) // workaround for switch WAN port, port 3 => port 5 is connected to CPU eth1
 	mt7530_rmw(priv, MT7530_MFC, UNM_FFP_MASK, UNM_FFP(BIT(port)|BIT(5)|BIT(3)));
 #else
 	mt7530_rmw(priv, MT7530_MFC, UNM_FFP_MASK, UNM_FFP(BIT(port)));

@@ -24,6 +24,9 @@ define platformL2Router
 			echo "RTCONFIG_ZENWIFI_RGBLED=y" >>$(1); \
 			sed -i "/RTCONFIG_PWMX1_GPIOX3_RGBLED\>/d" $(1); \
 			echo "RTCONFIG_PWMX1_GPIOX3_RGBLED=y" >>$(1); \
+		elif [ "$(BUILD_NAME)" = "TUF-AX4200" ]; then \
+			sed -i "/RTCONFIG_GPIOX3_RGBLED\>/d" $(1); \
+			echo "RTCONFIG_GPIOX3_RGBLED=y" >>$(1); \
 		fi; \
 	)
 endef
@@ -34,7 +37,7 @@ endef
 
 define platformL2Kernel
 	@( \
-	if [ "$(BUILD_NAME)" = "TUF-AX4200" -o "$(TS_UI)" = "y" ]; then \
+	if [ "$(BUILD_NAME)" = "TUF-AX4200" -o "$(BUILD_NAME)" = "TUF-X60NEW" -o "$(TS_UI)" = "y" ]; then \
 		sed -i "/CONFIG_OVERLAY_FS\>/d" $(1); \
 		echo "CONFIG_OVERLAY_FS=y" >>$(1); \
 		sed -i "/CONFIG_OVERLAY_FS_REDIRECT_DIR\>/d" $(1); \

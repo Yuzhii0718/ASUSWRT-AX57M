@@ -8,7 +8,7 @@ Mediatek Filogic MT79xx SoC Models
     Supported models:
 
         MT7981 (Filogic 820):  CHEETAH, RT-AX57M, RT-AX52
-        MT7986 (Filogic 830):  PANTHERA, PANTHERB,TUF-AX4200, TUF-AX6000, RT-AX59U, 
+        MT7986 (Filogic 830):  PANTHERA, PANTHERB,TUF-AX4200, TUF-AX6000, TUF-X60NEW, RT-AX59U, 
 
 
 1. Prepare Environment (Ubuntu 20.04+)
@@ -56,6 +56,7 @@ Mediatek Filogic MT79xx SoC Models
         make TUF-AX6000              # MT7986
         make RT-AX59U                # MT7986
         make RT-8103AX               # MT7981 ZBT_Z8103AX-C
+        make TUF-X60NEW              # MT7986 Ruijie_X60NEW
         
     Build a specific package (e.g. httpd):
         make mk-httpd

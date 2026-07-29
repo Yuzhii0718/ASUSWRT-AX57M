@@ -277,6 +277,18 @@ static int setAllSpecificColorLedOn(enum ate_led_color color)
 		}
 		break;
 #endif
+#if defined(TUFX60NEW)
+	case MODEL_TUFX60NEW:
+		{
+			static enum led_id blue_led[] = {
+				LED_POWER, LED_WAN,
+				LED_2G, LED_5G,
+				LED_ID_MAX
+			};
+			all_led[LED_COLOR_BLUE] = blue_led;
+		}
+		break;
+#endif
 #if defined(RTAD7200)
 	case MODEL_RTAD7200:
 		{

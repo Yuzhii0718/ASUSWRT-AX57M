@@ -42,6 +42,7 @@ static struct time_mapping_s time_mapping_list[] = {
 	{ "TUF-AX4200Q",70,     90,     90},
 	{ "TUF-AX6000",	70,     90,     90},
 	{ "TUF-AX6000Q",70,     90,     90},
+	{ "TUF-X60NEW",	70,     90,     90},
 	{ "RT-AX59U",	70,     90,     90},
 	{ "RT-AX52",	70,     90,     90},
 	{ "RT-AX1500",	70,     90,     90},
