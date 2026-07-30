@@ -1,7 +1,9 @@
 LINUX_VERSION=$(LINUX_KERNEL)
 INSTALLKMODDIR:=$(INSTALLDIR)/lib/modules/$(LINUX_VERSION)
 
-ifeq ($(or $(MT7986A),$(MT7986B)),y)
+ifeq ($(MT7975_AX6000),y)
+PBBINS=$(wildcard prebuilt-mt7975-ax6000/*)
+else ifeq ($(or $(MT7986A),$(MT7986B)),y)
 PBBINS=$(wildcard prebuilt-mt7986-ax6000/*)
 else ifeq ($(MT7981),y)
 PBBINS=$(wildcard prebuilt-mt7981-ax3000/*)
